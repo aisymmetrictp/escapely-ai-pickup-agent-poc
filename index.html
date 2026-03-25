@@ -3,441 +3,521 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Escapely — AI Pickup Agent v2</title>
+<title>Escapely — AI Pickup Agent</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,600;0,6..12,700;0,6..12,800;1,6..12,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+   ═══════════════════════════════════════════ */
 :root {
-  --bg: #09090f;
-  --surface: #111119;
-  --surface2: #17171f;
-  --border: rgba(255,255,255,0.07);
-  --border2: rgba(255,255,255,0.13);
-  --purple: #7c5cfc;
-  --purple-l: #a688fd;
-  --purple-glow: rgba(124,92,252,0.15);
-  --teal: #00d4a0;
-  --teal-dim: rgba(0,212,160,0.1);
-  --amber: #f5a623;
-  --amber-dim: rgba(245,166,35,0.1);
-  --red: #ff4d6d;
-  --red-dim: rgba(255,77,109,0.1);
-  --text: #eeeaf8;
-  --muted: #8480a0;
-  --dim: #3e3c55;
+  --yellow: #FFFB00;
+  --yellow-dim: rgba(255,251,0,0.10);
+  --yellow-border: rgba(255,251,0,0.25);
+  --green: #2BD68F;
+  --green-dim: rgba(43,214,143,0.10);
+  --green-border: rgba(43,214,143,0.25);
+  --pink: #E01D62;
+  --pink-dim: rgba(224,29,98,0.10);
+  --pink-border: rgba(224,29,98,0.25);
+  --amber: #F5A623;
+  --amber-dim: rgba(245,166,35,0.10);
+  --amber-border: rgba(245,166,35,0.25);
+  --bg: #000000;
+  --surface: #0a0a0a;
+  --surface2: #111111;
+  --surface3: #1a1a1a;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.12);
+  --border3: rgba(255,255,255,0.20);
+  --text: #FFFFFF;
+  --text-secondary: #b0b0b0;
+  --muted: #707070;
+  --dim: #404040;
+  --display: 'Amatic SC', cursive;
+  --sans: 'Nunito Sans', sans-serif;
   --mono: 'DM Mono', monospace;
-  --sans: 'Syne', sans-serif;
-  --serif: 'Instrument Serif', serif;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px;
+  --s6: 24px; --s7: 32px; --s8: 40px; --s9: 48px; --s10: 64px;
+  --r-sm: 8px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px; --r-pill: 50px;
 }
+
+/* RESET */
 *{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
-body{background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden;}
-body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:0.5;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:0.4;}
+::selection{background:var(--yellow);color:#000;}
+a{color:var(--yellow);text-decoration:none;}
 
-/* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:18px 36px;background:rgba(9,9,15,0.75);backdrop-filter:blur(20px);border-bottom:0.5px solid var(--border);}
-.logo{font-size:14px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;}
-.logo span{color:var(--purple-l);}
-.nav-pills{display:flex;gap:3px;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:3px;}
-.npill{padding:7px 15px;font-size:12px;font-weight:700;font-family:var(--sans);border-radius:7px;border:none;background:none;color:var(--muted);cursor:pointer;transition:all .18s;letter-spacing:.02em;}
-.npill:hover{color:var(--text);}
-.npill.active{background:var(--purple);color:#fff;}
-.nav-right{font-size:11px;font-family:var(--mono);color:var(--teal);border:0.5px solid rgba(0,212,160,.25);padding:5px 12px;border-radius:20px;background:var(--teal-dim);}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--sans);font-weight:700;border:none;cursor:pointer;transition:all 0.25s ease;letter-spacing:0.02em;white-space:nowrap;}
+.btn-lg{padding:14px 32px;font-size:14px;border-radius:var(--r-pill);}
+.btn-md{padding:10px 24px;font-size:13px;border-radius:var(--r-pill);}
+.btn-sm{padding:7px 16px;font-size:12px;border-radius:var(--r-pill);}
+.btn-primary{background:var(--yellow);color:#000;border:3px solid var(--yellow);}
+.btn-primary:hover{background:transparent;color:var(--yellow);transform:translateY(-2px);}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+.btn-success{background:var(--green);color:#000;border:3px solid var(--green);}
+.btn-success:hover{background:transparent;color:var(--green);transform:translateY(-2px);}
+.btn-success:disabled{opacity:0.3;cursor:not-allowed;transform:none;background:var(--green-dim);color:var(--green);border-color:var(--green-border);}
+.btn-danger{background:transparent;color:var(--pink);border:3px solid var(--pink-border);}
+.btn-danger:hover{background:var(--pink);color:#fff;transform:translateY(-2px);}
+.btn-ghost{background:transparent;color:var(--text-secondary);border:2px solid var(--border2);}
+.btn-ghost:hover{border-color:var(--yellow-border);color:var(--yellow);transform:translateY(-1px);}
+.btn-outline-yellow{background:transparent;color:var(--yellow);border:2px solid var(--yellow-border);}
+.btn-outline-yellow:hover{background:var(--yellow-dim);transform:translateY(-1px);}
+.btn-outline-green{background:transparent;color:var(--green);border:2px solid var(--green-border);}
+.btn-outline-green:hover{background:var(--green-dim);}
 
-/* SECTIONS */
-.sec{display:none;} .sec.on{display:block;}
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;transition:all 0.25s ease;}
+.card:hover{border-color:var(--border2);}
+.card-bordered-yellow{border:3px solid var(--yellow-border);}
+.card-bordered-green{border:3px solid var(--green-border);}
+.card-bordered-pink{border:3px solid var(--pink-border);}
 
-/* ─── OVERVIEW ─── */
-.hero{padding:130px 40px 60px;max-width:1160px;margin:0 auto;}
-.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--purple-l);margin-bottom:22px;display:flex;align-items:center;gap:10px;}
-.eyebrow::before{content:'';display:block;width:28px;height:1px;background:var(--purple-l);}
-.hero h1{font-size:clamp(48px,5.5vw,80px);font-weight:800;line-height:1.03;letter-spacing:-.03em;margin-bottom:24px;}
-.hero h1 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--purple-l);}
-.hero-sub{font-size:17px;color:var(--muted);max-width:580px;line-height:1.7;margin-bottom:20px;font-weight:400;}
-.insight-box{background:var(--surface);border:0.5px solid rgba(245,166,35,.25);border-radius:14px;padding:20px 24px;max-width:700px;margin-bottom:44px;}
-.insight-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-bottom:8px;}
-.insight-text{font-size:13px;color:var(--muted);line-height:1.65;font-style:italic;}
-.insight-text strong{color:var(--text);font-style:normal;}
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:10px;letter-spacing:0.06em;padding:4px 10px;border-radius:var(--r-pill);text-transform:uppercase;white-space:nowrap;}
+.badge-yellow{background:var(--yellow-dim);color:var(--yellow);border:1px solid var(--yellow-border);}
+.badge-green{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border);}
+.badge-pink{background:var(--pink-dim);color:var(--pink);border:1px solid var(--pink-border);}
+.badge-amber{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border);}
+.badge-muted{background:rgba(255,255,255,0.04);color:var(--muted);border:1px solid var(--border);}
 
-.stats-row{display:flex;gap:0;margin-bottom:60px;}
-.stat{padding:22px 32px;border:0.5px solid var(--border);background:var(--surface);}
-.stat:first-child{border-radius:12px 0 0 12px;}
-.stat:last-child{border-radius:0 12px 12px 0;}
-.stat-n{font-size:32px;font-weight:800;letter-spacing:-.03em;margin-bottom:3px;}
-.stat-l{font-size:11px;color:var(--muted);font-family:var(--mono);}
-.n-purple{color:var(--purple-l);} .n-teal{color:var(--teal);} .n-amber{color:var(--amber);}
+/* FORM */
+.form-group{margin-bottom:var(--s4);}
+.form-label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:var(--s2);}
+.form-hint{font-size:11px;color:var(--dim);font-family:var(--mono);margin-top:var(--s1);}
+.input{width:100%;background:var(--surface2);border:2px solid var(--border2);border-radius:var(--r-pill);padding:12px 20px;font-size:14px;font-family:var(--sans);color:var(--text);transition:all 0.2s;}
+.input::placeholder{color:var(--dim);}
+.input:focus{outline:none;border-color:var(--yellow);box-shadow:0 0 0 4px var(--yellow-dim);}
+select.input{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23707070' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;}
 
-/* FLOW COMPARE */
-.flow-wrap{max-width:1160px;margin:0 auto;padding:0 40px 80px;}
-.slabel{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:28px;}
-.compare{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:60px;}
-.fbox{background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:26px;}
-.fbox.bad{border-color:rgba(255,77,109,.2);}
-.fbox.good{border-color:rgba(124,92,252,.28);}
-.ftag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:4px 9px;border-radius:5px;display:inline-block;margin-bottom:18px;}
-.ftag.red{background:rgba(255,77,109,.1);color:var(--red);}
-.ftag.purple{background:rgba(124,92,252,.12);color:var(--purple-l);}
-.ftitle{font-size:15px;font-weight:700;margin-bottom:18px;}
-.fstep{display:flex;align-items:flex-start;gap:11px;padding:9px 0;border-bottom:0.5px solid var(--border);font-size:13px;color:var(--muted);line-height:1.5;}
-.fstep:last-child{border-bottom:none;}
-.fdot{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:var(--mono);margin-top:1px;}
-.fdot.bad{background:rgba(255,77,109,.12);color:var(--red);border:0.5px solid rgba(255,77,109,.25);}
-.fdot.good{background:rgba(124,92,252,.12);color:var(--purple-l);border:0.5px solid rgba(124,92,252,.25);}
-.fdot.check{background:rgba(0,212,160,.12);color:var(--teal);border:0.5px solid rgba(0,212,160,.25);}
-.pain{font-size:10px;font-family:var(--mono);color:var(--red);margin-top:3px;opacity:.7;}
-.good-note{font-size:10px;font-family:var(--mono);color:var(--teal);margin-top:3px;}
+/* METRIC */
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s6);position:relative;overflow:hidden;}
+.metric::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.metric-yellow::before{background:var(--yellow);}
+.metric-green::before{background:var(--green);}
+.metric-pink::before{background:var(--pink);}
+.metric-amber::before{background:var(--amber);}
+.metric-value{font-size:36px;font-weight:800;letter-spacing:-0.03em;line-height:1;}
+.metric-label{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:var(--s2);}
+.metric-delta{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:var(--r-pill);display:inline-block;}
+.metric-up{background:var(--green-dim);color:var(--green);}
+.metric-down{background:var(--pink-dim);color:var(--pink);}
 
-.cta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-.cta-card{background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:22px;cursor:pointer;transition:all .2s;}
-.cta-card:hover{border-color:var(--border2);transform:translateY(-2px);}
-.cta-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:12px;}
-.ci-p{background:var(--purple-glow);}
-.ci-t{background:var(--teal-dim);}
-.ci-a{background:var(--amber-dim);}
-.cta-lbl{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:7px;}
-.cta-title{font-size:14px;font-weight:700;margin-bottom:6px;}
-.cta-body{font-size:12px;color:var(--muted);line-height:1.55;}
-.cta-link{margin-top:10px;font-family:var(--mono);font-size:11px;}
-.lp{color:var(--purple-l);} .lt{color:var(--teal);} .la{color:var(--amber);}
-
-/* ─── AGENT DEMO ─── */
-.demo-wrap{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 62px);margin-top:62px;}
-.dsidebar{background:var(--surface);border-right:0.5px solid var(--border);padding:28px 22px;overflow-y:auto;}
-.dmain{padding:28px;overflow-y:auto;}
-.slbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;}
-
-.source-toggle{display:flex;gap:4px;background:var(--surface2);border:0.5px solid var(--border);border-radius:9px;padding:3px;margin-bottom:14px;}
-.src-btn{flex:1;padding:8px;font-size:12px;font-weight:700;font-family:var(--sans);border-radius:6px;border:none;background:none;color:var(--muted);cursor:pointer;transition:all .15s;text-align:center;}
-.src-btn.active{background:var(--purple);color:#fff;}
-
-.field{width:100%;background:var(--surface2);border:0.5px solid var(--border2);border-radius:9px;padding:10px 13px;font-size:13px;font-family:var(--sans);color:var(--text);margin-bottom:9px;}
-.field::placeholder{color:var(--dim);}
-.field:focus{outline:none;border-color:var(--purple);}
-select.field{appearance:none;cursor:pointer;}
-
-.run-btn{width:100%;background:var(--purple);color:#fff;border:none;border-radius:9px;padding:13px;font-size:13px;font-weight:800;font-family:var(--sans);cursor:pointer;transition:all .2s;letter-spacing:.02em;margin-top:6px;}
-.run-btn:hover{background:var(--purple-l);transform:translateY(-1px);}
-.run-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
-
-.sidebar-info{background:var(--surface2);border:0.5px solid var(--border);border-radius:10px;padding:14px;margin-top:14px;}
-
-/* LOG */
-.logbox{background:var(--surface);border:0.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;}
-.log-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:0.5px solid var(--border);background:var(--surface2);}
-.log-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;}
-.pdot{width:8px;height:8px;border-radius:50%;background:var(--teal);}
-.pdot.spin{animation:pulse 1s ease-in-out infinite;}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.35;transform:scale(.75);}}
-.log-body{padding:18px;font-family:var(--mono);font-size:12px;line-height:1.85;min-height:180px;}
-.ll{display:flex;gap:10px;align-items:flex-start;opacity:0;transform:translateY(4px);animation:fu .25s ease forwards;}
-@keyframes fu{to{opacity:1;transform:translateY(0);}}
-.lts{color:var(--dim);flex-shrink:0;font-size:11px;}
-.ltag{flex-shrink:0;font-size:9px;padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:.06em;margin-top:3px;}
-.t-info{background:rgba(124,92,252,.14);color:var(--purple-l);}
-.t-hs{background:rgba(245,166,35,.11);color:var(--amber);}
-.t-query{background:rgba(0,212,160,.09);color:var(--teal);}
-.t-ai{background:rgba(245,166,35,.13);color:var(--amber);}
-.t-verify{background:rgba(255,77,109,.11);color:var(--red);}
-.t-send{background:rgba(0,212,160,.13);color:var(--teal);}
-.t-done{background:rgba(0,212,160,.2);color:var(--teal);}
-.t-warn{background:rgba(255,77,109,.13);color:var(--red);}
-.t-fallback{background:rgba(255,77,109,.18);color:var(--red);}
-.lmsg{color:var(--muted);flex:1;}
-.lmsg strong{color:var(--text);font-weight:500;}
-.hl{color:var(--teal);} .pl{color:var(--purple-l);} .al{color:var(--amber);} .rl{color:var(--red);}
-
-/* RESULT */
-.rgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;opacity:0;transition:opacity .4s;}
-.rgrid.on{opacity:1;}
-.rcard{background:var(--surface);border:0.5px solid var(--border);border-radius:13px;padding:18px;position:relative;overflow:hidden;}
-.rcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
-.rcard.store::before{background:var(--purple);}
-.rcard.customer::before{background:var(--teal);}
-.rcard.hq::before{background:var(--amber);}
-.rcard.fallback::before{background:var(--red);}
-.ricon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;margin-bottom:10px;}
-.ri-p{background:var(--purple-glow);}
-.ri-t{background:var(--teal-dim);}
-.ri-a{background:var(--amber-dim);}
-.ri-r{background:var(--red-dim);}
-.rlbl{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:6px;}
-.rtitle{font-size:14px;font-weight:700;margin-bottom:5px;}
-.rbody{font-size:12px;color:var(--muted);line-height:1.5;}
-
-/* NOTIF */
-.npreview{background:var(--surface2);border:0.5px solid var(--border);border-radius:12px;padding:16px;opacity:0;transition:opacity .4s;}
-.npreview.on{opacity:1;}
-.ntabs{display:flex;gap:4px;margin-bottom:14px;}
-.ntab{padding:5px 11px;font-size:11px;font-family:var(--mono);border-radius:6px;border:0.5px solid var(--border);background:none;color:var(--muted);cursor:pointer;transition:all .15s;}
-.ntab.active{background:var(--surface);color:var(--text);border-color:var(--border2);}
-.ncontent{display:none;} .ncontent.active{display:block;}
-.sms-bubble{background:var(--purple);color:#fff;padding:12px 15px;border-radius:16px 16px 4px 16px;font-size:13px;line-height:1.55;max-width:82%;margin-left:auto;font-family:system-ui,sans-serif;}
-.sms-bubble.store-msg{background:var(--surface);border:0.5px solid var(--border2);color:var(--muted);margin-left:0;margin-right:auto;border-radius:16px 16px 16px 4px;}
-.sms-meta{font-size:11px;color:var(--dim);font-family:var(--mono);margin-top:6px;}
-.sms-meta.left{text-align:left;}
-.email-mock{font-size:13px;line-height:1.6;color:var(--muted);font-family:system-ui,sans-serif;}
-.ef{display:flex;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--border);margin-bottom:3px;font-size:12px;}
-.ek{color:var(--dim);width:48px;flex-shrink:0;font-family:var(--mono);font-size:11px;}
-.ev{color:var(--muted);}
-.ebody{margin-top:12px;}
-.warn-bubble{background:rgba(255,77,109,.08);border:0.5px solid rgba(255,77,109,.2);border-radius:12px;padding:12px 15px;font-size:13px;color:var(--red);line-height:1.55;font-family:system-ui,sans-serif;}
-
-/* ─── DASHBOARD ─── */
-.dash-wrap{margin-top:62px;padding:28px 32px;max-width:1280px;margin-left:auto;margin-right:auto;}
-.dh{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px;}
-.dt{font-size:26px;font-weight:800;letter-spacing:-.02em;}
-.ds{font-size:12px;color:var(--muted);margin-top:4px;font-family:var(--mono);}
-.live-chip{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--teal);border:0.5px solid rgba(0,212,160,.22);padding:5px 11px;border-radius:20px;background:var(--teal-dim);}
-.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:13px;margin-bottom:24px;}
-.mtile{background:var(--surface);border:0.5px solid var(--border);border-radius:13px;padding:18px 20px;}
-.mtop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
-.mico{font-size:16px;}
-.mdelta{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:5px;}
-.up{background:rgba(0,212,160,.09);color:var(--teal);} .dn{background:rgba(255,77,109,.09);color:var(--red);}
-.mval{font-size:28px;font-weight:800;letter-spacing:-.03em;margin-bottom:3px;}
-.mlbl{font-size:11px;color:var(--muted);font-family:var(--mono);}
-
-.alerts{margin-bottom:22px;}
-.abar{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:11px;margin-bottom:7px;font-size:13px;}
-.abar.danger{background:rgba(255,77,109,.07);border:0.5px solid rgba(255,77,109,.18);}
-.abar.warn{background:rgba(245,166,35,.06);border:0.5px solid rgba(245,166,35,.18);}
-.abar.info{background:rgba(124,92,252,.07);border:0.5px solid rgba(124,92,252,.18);}
-.aico{font-size:15px;flex-shrink:0;}
-.amsg{flex:1;color:var(--muted);font-size:13px;}
-.amsg strong{color:var(--text);}
-.aact{font-family:var(--mono);font-size:10px;color:var(--purple-l);border:0.5px solid rgba(124,92,252,.28);padding:4px 11px;border-radius:5px;cursor:pointer;background:none;transition:all .15s;white-space:nowrap;}
-.aact:hover{background:rgba(124,92,252,.09);}
-.aact.teal{color:var(--teal);border-color:rgba(0,212,160,.28);}
-.aact.teal:hover{background:rgba(0,212,160,.09);}
-
-.tsec{background:var(--surface);border:0.5px solid var(--border);border-radius:15px;overflow:hidden;margin-bottom:24px;}
-.thbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:0.5px solid var(--border);}
-.ttitle{font-size:13px;font-weight:700;}
-.filters{display:flex;gap:5px;}
-.fb{font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:5px;border:0.5px solid var(--border);background:none;color:var(--muted);cursor:pointer;transition:all .15s;}
-.fb.on,.fb:hover{background:var(--surface2);color:var(--text);border-color:var(--border2);}
-table{width:100%;border-collapse:collapse;}
-thead th{padding:10px 14px;text-align:left;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);border-bottom:0.5px solid var(--border);background:var(--surface2);font-weight:400;}
-tbody tr{border-bottom:0.5px solid var(--border);transition:background .1s;}
-tbody tr:last-child{border-bottom:none;}
-tbody tr:hover{background:rgba(255,255,255,.015);}
-tbody td{padding:12px 14px;font-size:12px;color:var(--muted);vertical-align:middle;}
-.tdc{color:var(--text);font-weight:700;}
-.tdn{color:var(--text);}
-.pill{font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:3px 8px;border-radius:5px;text-transform:uppercase;white-space:nowrap;display:inline-block;}
-.p-pend{background:rgba(139,137,168,.1);color:var(--muted);}
-.p-verif{background:rgba(245,166,35,.1);color:var(--amber);}
-.p-notif{background:rgba(124,92,252,.1);color:var(--purple-l);}
-.p-conf{background:rgba(0,212,160,.09);color:var(--teal);}
-.p-done{background:rgba(0,212,160,.18);color:var(--teal);}
-.p-risk{background:rgba(255,77,109,.1);color:var(--red);}
-.p-fall{background:rgba(255,77,109,.08);color:var(--red);}
-.p-ship{background:rgba(139,137,168,.08);color:var(--muted);}
-.tda{font-family:var(--mono);font-size:10px;color:var(--purple-l);cursor:pointer;}
-
-.source-tag{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:4px;}
-.s-web{background:rgba(124,92,252,.1);color:var(--purple-l);}
-.s-viat{background:rgba(245,166,35,.1);color:var(--amber);}
-
-.inv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
-.icard{background:var(--surface);border:0.5px solid var(--border);border-radius:11px;padding:14px;}
-.icity{font-size:13px;font-weight:700;margin-bottom:3px;}
-.istore{font-size:10px;color:var(--dim);font-family:var(--mono);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.sbar-w{background:rgba(255,255,255,.05);border-radius:3px;height:4px;margin-bottom:5px;overflow:hidden;}
-.sbar{height:100%;border-radius:3px;transition:width .5s ease;}
-.b-ok{background:var(--teal);} .b-low{background:var(--amber);} .b-empty{background:var(--red);width:0!important;}
-.icount{font-family:var(--mono);font-size:10px;display:flex;justify-content:space-between;}
-.cn{color:var(--muted);}
-.ok{color:var(--teal);} .low{color:var(--amber);} .empty{color:var(--red);}
-
-/* ─── STORE PORTAL ─── */
-.sp-wrap{max-width:640px;margin:82px auto 0;padding:28px 22px;}
-.sp-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;padding-bottom:22px;border-bottom:0.5px solid var(--border);}
-.sp-name{font-size:20px;font-weight:800;letter-spacing:-.02em;}
-.sp-meta{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:4px;}
-.stock-badge{font-family:var(--mono);font-size:11px;padding:8px 14px;border-radius:8px;text-align:center;}
-.stock-badge span{display:block;font-size:20px;font-weight:800;margin-bottom:1px;}
-.plist{display:flex;flex-direction:column;gap:10px;margin-bottom:28px;}
-.pcard{background:var(--surface);border:0.5px solid var(--border);border-radius:13px;padding:16px 18px;display:flex;align-items:center;gap:14px;}
-.ptime{text-align:center;min-width:52px;}
-.pt{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--text);}
-.pam{font-family:var(--mono);font-size:9px;color:var(--dim);}
-.pdiv{width:.5px;height:38px;background:var(--border);}
-.pinfo{flex:1;}
-.pcust{font-size:14px;font-weight:700;margin-bottom:2px;}
-.pgame{font-size:11px;color:var(--muted);font-family:var(--mono);}
-.psrc{font-size:10px;font-family:var(--mono);margin-top:3px;}
-.hbtn{background:var(--teal);color:#0a0a0f;border:none;border-radius:8px;padding:9px 14px;font-size:11px;font-weight:800;font-family:var(--sans);cursor:pointer;transition:all .2s;white-space:nowrap;}
-.hbtn:hover{transform:translateY(-1px);filter:brightness(1.08);}
-.hbtn:disabled,.hbtn.done{background:rgba(0,212,160,.15);color:var(--teal);cursor:default;transform:none;filter:none;}
-.upcoming-sec{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:15px 17px;}
-.sp-footer{margin-top:14px;font-size:11px;color:var(--dim);font-family:var(--mono);text-align:center;}
+/* ALERT */
+.alert{display:flex;align-items:center;gap:var(--s4);padding:var(--s4) var(--s5);border-radius:var(--r-md);margin-bottom:var(--s3);font-size:13px;}
+.alert-danger{background:var(--pink-dim);border:1px solid var(--pink-border);}
+.alert-warning{background:var(--amber-dim);border:1px solid var(--amber-border);}
+.alert-info{background:var(--yellow-dim);border:1px solid var(--yellow-border);}
+.alert-icon{font-size:16px;flex-shrink:0;}
+.alert-msg{flex:1;color:var(--text-secondary);}
+.alert-msg strong{color:var(--text);}
 
 /* TOAST */
-.toast{position:fixed;bottom:28px;right:28px;background:var(--surface2);border:0.5px solid rgba(0,212,160,.28);border-radius:11px;padding:12px 16px;font-size:12px;color:var(--teal);font-family:var(--mono);opacity:0;transform:translateY(8px);transition:all .28s;z-index:9998;pointer-events:none;max-width:320px;line-height:1.5;}
-.toast.on{opacity:1;transform:translateY(0);}
-.toast.warn-toast{border-color:rgba(255,77,109,.28);color:var(--red);}
+.toast{position:fixed;bottom:32px;right:32px;background:var(--surface2);border:2px solid var(--green-border);border-radius:var(--r-lg);padding:16px 24px;font-size:13px;color:var(--green);font-family:var(--sans);font-weight:600;opacity:0;transform:translateY(16px) scale(0.95);transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);z-index:9998;pointer-events:none;max-width:400px;line-height:1.5;box-shadow:0 8px 32px rgba(0,0,0,0.5);}
+.toast.on{opacity:1;transform:translateY(0) scale(1);}
+.toast.warn-toast{border-color:var(--pink-border);color:var(--pink);}
 
-/* MISC */
-.ph{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;color:var(--dim);font-family:var(--mono);font-size:12px;text-align:center;gap:9px;}
-.phico{font-size:28px;opacity:.25;}
-::-webkit-scrollbar{width:3px;}
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 var(--s8);height:64px;background:rgba(0,0,0,0.80);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);}
+.logo{font-family:var(--display);font-size:32px;font-weight:700;letter-spacing:0.02em;color:var(--text);}
+.logo span{color:var(--yellow);}
+.logo-sub{font-family:var(--sans);font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-left:12px;}
+.nav-pills{display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-pill);padding:4px;}
+.npill{padding:8px 20px;font-size:13px;font-weight:700;font-family:var(--sans);border-radius:var(--r-pill);border:none;background:none;color:var(--muted);cursor:pointer;transition:all 0.2s;letter-spacing:0.01em;}
+.npill:hover{color:var(--text);}
+.npill.active{background:var(--yellow);color:#000;}
+.nav-status{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--green);border:1px solid var(--green-border);padding:6px 14px;border-radius:var(--r-pill);background:var(--green-dim);}
+.nav-status .dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite;}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:24px;cursor:pointer;padding:8px;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(0.7);}}
+
+/* SECTIONS */
+.sec{display:none;animation:fadeIn 0.3s ease;}
+.sec.on{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* OVERVIEW */
+.hero{padding:120px var(--s8) var(--s10);max-width:1200px;margin:0 auto;}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--yellow);margin-bottom:var(--s6);display:flex;align-items:center;gap:12px;}
+.eyebrow::before{content:'';display:block;width:32px;height:2px;background:var(--yellow);}
+.hero h1{font-family:var(--display);font-size:clamp(64px,8vw,120px);font-weight:700;line-height:0.95;letter-spacing:0.01em;margin-bottom:var(--s7);}
+.hero h1 .accent{color:var(--yellow);}
+.hero-sub{font-size:18px;color:var(--text-secondary);max-width:600px;line-height:1.7;margin-bottom:var(--s7);font-weight:400;}
+.insight-box{background:var(--surface);border:3px solid var(--yellow-border);border-radius:var(--r-xl);padding:var(--s6) var(--s7);max-width:720px;margin-bottom:var(--s9);}
+.insight-label{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--yellow);margin-bottom:var(--s3);}
+.insight-text{font-size:14px;color:var(--text-secondary);line-height:1.7;font-style:italic;}
+.insight-text strong{color:var(--text);font-style:normal;}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s4);margin-bottom:var(--s10);}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s6);position:relative;overflow:hidden;text-align:center;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.stat-card:nth-child(1)::before{background:var(--yellow);}
+.stat-card:nth-child(2)::before{background:var(--amber);}
+.stat-card:nth-child(3)::before{background:var(--green);}
+.stat-card:nth-child(4)::before{background:var(--yellow);}
+.stat-n{font-size:40px;font-weight:800;letter-spacing:-0.03em;margin-bottom:var(--s1);}
+.stat-l{font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:0.02em;}
+.n-yellow{color:var(--yellow);} .n-green{color:var(--green);} .n-amber{color:var(--amber);} .n-pink{color:var(--pink);}
+
+/* FLOW COMPARE */
+.flow-wrap{max-width:1200px;margin:0 auto;padding:0 var(--s8) 80px;}
+.section-label{font-family:var(--display);font-size:36px;font-weight:700;margin-bottom:var(--s7);color:var(--text);}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:var(--s6);margin-bottom:var(--s10);}
+.fbox{background:var(--surface);border-radius:var(--r-xl);padding:var(--s7);}
+.fbox.bad{border:3px solid var(--pink-border);}
+.fbox.good{border:3px solid var(--green-border);}
+.ftag{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:5px 14px;border-radius:var(--r-pill);display:inline-block;margin-bottom:var(--s5);}
+.ftag.red{background:var(--pink-dim);color:var(--pink);}
+.ftag.green{background:var(--green-dim);color:var(--green);}
+.ftitle{font-size:16px;font-weight:700;margin-bottom:var(--s5);}
+.fstep{display:flex;align-items:flex-start;gap:var(--s3);padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--text-secondary);line-height:1.6;}
+.fstep:last-child{border-bottom:none;}
+.fdot{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:var(--mono);margin-top:2px;font-weight:700;}
+.fdot.bad{background:var(--pink-dim);color:var(--pink);border:1px solid var(--pink-border);}
+.fdot.good{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border);}
+.fdot.check{background:var(--green);color:#000;border:none;}
+.pain{font-size:11px;font-family:var(--mono);color:var(--pink);margin-top:4px;opacity:0.8;}
+.good-note{font-size:11px;font-family:var(--mono);color:var(--green);margin-top:4px;}
+.cta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s5);}
+.cta-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--r-xl);padding:var(--s7);cursor:pointer;transition:all 0.3s ease;}
+.cta-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,0.4);}
+.cta-card:nth-child(1):hover{border-color:var(--yellow-border);}
+.cta-card:nth-child(2):hover{border-color:var(--green-border);}
+.cta-card:nth-child(3):hover{border-color:var(--amber-border);}
+.cta-icon{width:48px;height:48px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:var(--s5);}
+.ci-y{background:var(--yellow-dim);border:1px solid var(--yellow-border);}
+.ci-g{background:var(--green-dim);border:1px solid var(--green-border);}
+.ci-a{background:var(--amber-dim);border:1px solid var(--amber-border);}
+.cta-lbl{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--dim);margin-bottom:var(--s2);}
+.cta-title{font-size:16px;font-weight:800;margin-bottom:var(--s2);}
+.cta-body{font-size:13px;color:var(--text-secondary);line-height:1.6;}
+.cta-link{margin-top:var(--s4);font-family:var(--mono);font-size:11px;font-weight:600;}
+.ly{color:var(--yellow);} .lg{color:var(--green);} .la{color:var(--amber);}
+
+/* DEMO */
+.demo-wrap{display:grid;grid-template-columns:340px 1fr;min-height:calc(100vh - 64px);margin-top:64px;}
+.dsidebar{background:var(--surface);border-right:1px solid var(--border);padding:var(--s7) var(--s6);overflow-y:auto;}
+.dmain{padding:var(--s7);overflow-y:auto;}
+.source-toggle{display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-pill);padding:4px;margin-bottom:var(--s4);}
+.src-btn{flex:1;padding:10px;font-size:13px;font-weight:700;font-family:var(--sans);border-radius:var(--r-pill);border:none;background:none;color:var(--muted);cursor:pointer;transition:all 0.2s;text-align:center;}
+.src-btn.active{background:var(--yellow);color:#000;}
+
+/* LOG */
+.logbox{background:var(--surface);border:2px solid var(--border);border-radius:var(--r-xl);overflow:hidden;margin-bottom:var(--s6);}
+.log-hdr{display:flex;align-items:center;justify-content:space-between;padding:var(--s4) var(--s6);border-bottom:1px solid var(--border);background:var(--surface2);}
+.log-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:10px;}
+.pdot{width:8px;height:8px;border-radius:50%;background:var(--green);}
+.pdot.spin{animation:pulse 1s ease-in-out infinite;}
+.log-body{padding:var(--s5);font-family:var(--mono);font-size:12px;line-height:2;min-height:200px;max-height:500px;overflow-y:auto;}
+.ll{display:flex;gap:10px;align-items:flex-start;opacity:0;transform:translateY(6px);animation:fu 0.3s ease forwards;}
+@keyframes fu{to{opacity:1;transform:translateY(0);}}
+.lts{color:var(--dim);flex-shrink:0;font-size:11px;}
+.ltag{flex-shrink:0;font-size:9px;padding:3px 8px;border-radius:var(--r-pill);text-transform:uppercase;letter-spacing:0.06em;margin-top:3px;font-weight:600;}
+.t-info{background:var(--yellow-dim);color:var(--yellow);}
+.t-hs{background:var(--amber-dim);color:var(--amber);}
+.t-query{background:var(--green-dim);color:var(--green);}
+.t-ai{background:var(--amber-dim);color:var(--amber);}
+.t-verify{background:var(--pink-dim);color:var(--pink);}
+.t-send{background:var(--green-dim);color:var(--green);}
+.t-done{background:var(--green);color:#000;}
+.t-warn{background:var(--pink-dim);color:var(--pink);}
+.t-fallback{background:var(--pink-dim);color:var(--pink);}
+.lmsg{color:var(--text-secondary);flex:1;}
+.lmsg strong{color:var(--text);font-weight:500;}
+.hl{color:var(--green);} .pl{color:var(--yellow);} .al{color:var(--amber);} .rl{color:var(--pink);}
+
+/* RESULT */
+.rgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--s4);margin-bottom:var(--s6);opacity:0;transition:opacity 0.5s;}
+.rgrid.on{opacity:1;}
+.rcard{background:var(--surface);border:2px solid var(--border);border-radius:var(--r-xl);padding:var(--s5);position:relative;overflow:hidden;}
+.rcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.rcard.store::before{background:var(--yellow);}
+.rcard.customer::before{background:var(--green);}
+.rcard.hq::before{background:var(--amber);}
+.rcard.fallback::before{background:var(--pink);}
+.ricon{width:40px;height:40px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:var(--s3);}
+.ri-y{background:var(--yellow-dim);}
+.ri-g{background:var(--green-dim);}
+.ri-a{background:var(--amber-dim);}
+.ri-p{background:var(--pink-dim);}
+.rlbl{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--dim);margin-bottom:var(--s2);}
+.rtitle{font-size:15px;font-weight:700;margin-bottom:var(--s1);}
+.rbody{font-size:12px;color:var(--text-secondary);line-height:1.5;}
+
+/* NOTIF */
+.npreview{background:var(--surface2);border:2px solid var(--border);border-radius:var(--r-xl);padding:var(--s5);opacity:0;transition:opacity 0.5s;}
+.npreview.on{opacity:1;}
+.ntabs{display:flex;gap:4px;margin-bottom:var(--s4);}
+.ntab{padding:6px 14px;font-size:11px;font-family:var(--mono);border-radius:var(--r-pill);border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;transition:all 0.2s;font-weight:600;}
+.ntab.active{background:var(--surface);color:var(--text);border-color:var(--border3);}
+.ntab:hover{color:var(--text);}
+.ncontent{display:none;} .ncontent.active{display:block;}
+.sms-bubble{background:var(--yellow);color:#000;padding:14px 18px;border-radius:20px 20px 4px 20px;font-size:14px;line-height:1.6;max-width:82%;margin-left:auto;font-family:var(--sans);font-weight:600;}
+.sms-bubble.store-msg{background:var(--surface);border:1px solid var(--border2);color:var(--text-secondary);margin-left:0;margin-right:auto;border-radius:20px 20px 20px 4px;font-weight:400;}
+.sms-meta{font-size:11px;color:var(--dim);font-family:var(--mono);margin-top:8px;}
+.sms-meta.left{text-align:left;}
+.email-mock{font-size:13px;line-height:1.6;color:var(--text-secondary);font-family:var(--sans);}
+.ef{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.ek{color:var(--dim);width:52px;flex-shrink:0;font-family:var(--mono);font-size:11px;}
+.ev{color:var(--text-secondary);}
+.ebody{margin-top:14px;}
+
+/* DASHBOARD */
+.dash-wrap{margin-top:64px;padding:var(--s7) var(--s8);max-width:1320px;margin-left:auto;margin-right:auto;}
+.dash-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:var(--s7);}
+.dash-title{font-family:var(--display);font-size:48px;font-weight:700;}
+.dash-sub{font-size:13px;color:var(--muted);font-family:var(--mono);margin-top:var(--s1);}
+.metrics-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--s4);margin-bottom:var(--s6);}
+.alerts-wrap{margin-bottom:var(--s6);}
+
+/* TABLE */
+.table-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--r-xl);overflow:hidden;margin-bottom:var(--s6);}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:var(--s5) var(--s6);border-bottom:1px solid var(--border);}
+.table-title{font-size:15px;font-weight:700;}
+.filters{display:flex;gap:6px;}
+.filter-btn{font-family:var(--mono);font-size:10px;padding:5px 14px;border-radius:var(--r-pill);border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;transition:all 0.2s;font-weight:600;}
+.filter-btn.on,.filter-btn:hover{background:var(--surface3);color:var(--text);border-color:var(--border2);}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:12px 16px;text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--border);background:var(--surface2);font-weight:400;}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:rgba(255,255,255,0.02);}
+tbody td{padding:14px 16px;font-size:13px;color:var(--text-secondary);vertical-align:middle;}
+.tdc{color:var(--text);font-weight:700;}
+.tdn{color:var(--text);}
+.source-tag{font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:var(--r-pill);}
+.s-web{background:var(--yellow-dim);color:var(--yellow);}
+.s-viat{background:var(--amber-dim);color:var(--amber);}
+.tda{font-family:var(--mono);font-size:10px;color:var(--yellow);cursor:pointer;transition:color 0.15s;}
+.tda:hover{color:var(--text);}
+
+/* Inventory */
+.inv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s4);margin-bottom:var(--s6);}
+.icard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s5);transition:border-color 0.2s;}
+.icard:hover{border-color:var(--border2);}
+.icity{font-size:14px;font-weight:700;margin-bottom:var(--s1);}
+.istore{font-size:10px;color:var(--dim);font-family:var(--mono);margin-bottom:var(--s3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sbar-w{background:rgba(255,255,255,0.05);border-radius:4px;height:6px;margin-bottom:var(--s2);overflow:hidden;}
+.sbar{height:100%;border-radius:4px;transition:width 0.6s ease;}
+.b-ok{background:var(--green);} .b-low{background:var(--amber);} .b-empty{background:var(--pink);width:0!important;}
+.icount{font-family:var(--mono);font-size:10px;display:flex;justify-content:space-between;}
+.cn{color:var(--text-secondary);}
+.ok{color:var(--green);} .low{color:var(--amber);} .empty{color:var(--pink);}
+
+/* STORE PORTAL */
+.sp-wrap{max-width:680px;margin:88px auto 0;padding:var(--s7) var(--s6);}
+.checkin-banner{background:var(--surface);border:3px solid var(--yellow-border);border-radius:var(--r-xl);padding:var(--s6) var(--s7);margin-bottom:var(--s7);}
+.checkin-label{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--yellow);margin-bottom:var(--s3);}
+.checkin-text{font-size:14px;color:var(--text-secondary);margin-bottom:var(--s5);line-height:1.6;}
+.checkin-text strong{color:var(--text);}
+.checkin-actions{display:flex;gap:var(--s3);}
+.sp-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:var(--s7);padding-bottom:var(--s6);border-bottom:1px solid var(--border);}
+.sp-name{font-family:var(--display);font-size:42px;font-weight:700;line-height:1;}
+.sp-meta{font-size:12px;color:var(--text-secondary);font-family:var(--mono);margin-top:var(--s2);}
+.stock-badge{border:2px solid var(--green-border);background:var(--green-dim);border-radius:var(--r-lg);padding:var(--s3) var(--s5);text-align:center;}
+.stock-badge span{display:block;font-size:28px;font-weight:800;color:var(--green);}
+.stock-badge-label{font-family:var(--mono);font-size:9px;color:var(--green);letter-spacing:0.08em;text-transform:uppercase;}
+.plist{display:flex;flex-direction:column;gap:var(--s3);margin-bottom:var(--s7);}
+.pcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:var(--s5) var(--s6);display:flex;align-items:center;gap:var(--s4);transition:border-color 0.2s;}
+.pcard:hover{border-color:var(--border2);}
+.ptime{text-align:center;min-width:56px;}
+.pt{font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text);}
+.pam{font-family:var(--mono);font-size:10px;color:var(--dim);}
+.pdiv{width:1px;height:44px;background:var(--border);}
+.pinfo{flex:1;}
+.pcust{font-size:15px;font-weight:700;margin-bottom:3px;}
+.pgame{font-size:11px;color:var(--text-secondary);font-family:var(--mono);}
+.psrc{font-size:10px;font-family:var(--mono);margin-top:4px;}
+.hbtn{background:var(--green);color:#000;border:3px solid var(--green);border-radius:var(--r-pill);padding:10px 20px;font-size:12px;font-weight:800;font-family:var(--sans);cursor:pointer;transition:all 0.25s;white-space:nowrap;}
+.hbtn:hover{background:transparent;color:var(--green);transform:translateY(-2px);}
+.hbtn:disabled,.hbtn.done{background:var(--green-dim);color:var(--green);border-color:var(--green-border);cursor:default;transform:none;}
+.upcoming-sec{background:var(--surface);border:2px solid var(--border);border-radius:var(--r-xl);padding:var(--s5) var(--s6);}
+.sp-footer{margin-top:var(--s5);font-size:11px;color:var(--dim);font-family:var(--mono);text-align:center;line-height:1.6;}
+
+/* PLACEHOLDER */
+.ph{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:220px;color:var(--dim);font-family:var(--mono);font-size:13px;text-align:center;gap:12px;}
+.phico{font-size:32px;opacity:0.25;}
+.sidebar-info{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s4);margin-top:var(--s4);}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* RESPONSIVE */
+@media(max-width:1279px){
+  .metrics-grid{grid-template-columns:repeat(3,1fr);}
+  .inv-grid{grid-template-columns:repeat(3,1fr);}
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:768px){
+  nav{padding:0 var(--s4);height:56px;}
+  .nav-pills{display:none;}
+  .nav-pills.open{display:flex;position:absolute;top:56px;left:0;right:0;background:var(--surface);border-bottom:1px solid var(--border);padding:var(--s4);flex-direction:column;z-index:99;}
+  .nav-toggle{display:block;}
+  .logo{font-size:26px;}
+  .logo-sub{display:none;}
+  .nav-status{display:none;}
+  .hero{padding:80px var(--s4) var(--s8);}
+  .hero h1{font-size:56px;}
+  .hero-sub{font-size:16px;}
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .compare{grid-template-columns:1fr;}
+  .cta-grid{grid-template-columns:1fr;}
+  .flow-wrap{padding:0 var(--s4) var(--s8);}
+  .demo-wrap{grid-template-columns:1fr;margin-top:56px;}
+  .dsidebar{border-right:none;border-bottom:1px solid var(--border);max-height:none;}
+  .dmain{padding:var(--s4);}
+  .rgrid{grid-template-columns:1fr;}
+  .dash-wrap{padding:var(--s4) var(--s4);}
+  .dash-header{flex-direction:column;align-items:flex-start;gap:var(--s3);}
+  .metrics-grid{grid-template-columns:repeat(2,1fr);}
+  .inv-grid{grid-template-columns:repeat(2,1fr);}
+  table{font-size:11px;}
+  thead th,tbody td{padding:10px 8px;}
+  .sp-wrap{padding:var(--s4);}
+  .sp-hdr{flex-direction:column;gap:var(--s4);}
+  .sp-name{font-size:32px;}
+  .pcard{flex-wrap:wrap;}
+  .checkin-actions{flex-direction:column;}
+}
+@media(max-width:480px){
+  .hero h1{font-size:44px;}
+  .stats-row{grid-template-columns:1fr;}
+  .metrics-grid{grid-template-columns:1fr;}
+  .inv-grid{grid-template-columns:1fr;}
+  .ntabs{flex-wrap:wrap;}
+}
 </style>
 </head>
 <body>
 
+<!-- NAV -->
 <nav>
-  <div class="logo">escape<span>ly</span> <span style="opacity:.3;margin:0 5px">|</span> <span style="font-weight:400;color:var(--muted);font-size:12px;letter-spacing:.04em">AI Pickup Agent</span></div>
+  <div style="display:flex;align-items:center;">
+    <div class="logo">Escape<span>ly</span></div>
+    <span class="logo-sub">AI Pickup Agent</span>
+  </div>
+  <button class="nav-toggle" onclick="document.querySelector('.nav-pills').classList.toggle('open')" aria-label="Menu">&#9776;</button>
   <div class="nav-pills">
     <button class="npill active" onclick="goTab('overview')">Overview</button>
     <button class="npill" onclick="goTab('demo')">Live Demo</button>
     <button class="npill" onclick="goTab('dashboard')">HQ Dashboard</button>
     <button class="npill" onclick="goTab('store')">Store Portal</button>
   </div>
-  <div class="nav-right">POC · v2 · Updated</div>
+  <div class="nav-status"><div class="dot"></div>POC v2 &middot; Live</div>
 </nav>
 
-<!-- ══ OVERVIEW ══ -->
+<!-- OVERVIEW -->
 <div id="sec-overview" class="sec on">
   <div class="hero">
     <div class="eyebrow">Art of the Possible</div>
-    <h1>No more Saturday<br><em>firefighting.</em></h1>
-    <p class="hero-sub">Two order sources. Fickle partner stores. Customers who traveled to pick up and can't. The AI agent handles the full verification-first coordination loop — so no customer ever shows up to an empty store.</p>
-
+    <h1>No more Saturday<br><span class="accent">firefighting.</span></h1>
+    <p class="hero-sub">Two order sources. Fickle partner stores. Customers who traveled to pick up and can't. The AI agent handles the full verification-first coordination loop &mdash; so no customer ever shows up to an empty store.</p>
     <div class="insight-box">
-      <div class="insight-label">The real constraint — Tyler Perleberg, Escapely</div>
-      <div class="insight-text">"The <strong>last thing in the world</strong> we ever want to do is send a customer somewhere to pick up a box and have them not be able to get it. When we know right away that we can't fulfill the order with a pickup, the customer is much happier and more willing to get their game another way. When they get emails promising a game will be available and then it's not, they're furious."</div>
+      <div class="insight-label">The real constraint &mdash; Tyler Perleberg, Escapely</div>
+      <div class="insight-text">"The <strong>last thing in the world</strong> we ever want to do is send a customer somewhere to pick up a box and have them not be able to get it. When we know right away that we can't fulfill the order with a pickup, the customer is much happier and more willing to get their game another way."</div>
     </div>
-
     <div class="stats-row">
-      <div class="stat"><div class="stat-n n-purple">2</div><div class="stat-l">order sources (web + Viator)</div></div>
-      <div class="stat"><div class="stat-n n-amber">Day-of</div><div class="stat-l">store verify required</div></div>
-      <div class="stat"><div class="stat-n n-teal">0</div><div class="stat-l">failed pickups goal</div></div>
-      <div class="stat"><div class="stat-n n-purple">24/7</div><div class="stat-l">incl. weekends</div></div>
+      <div class="stat-card"><div class="stat-n n-yellow">2</div><div class="stat-l">order sources (web + Viator)</div></div>
+      <div class="stat-card"><div class="stat-n n-amber">Day-of</div><div class="stat-l">store verify required</div></div>
+      <div class="stat-card"><div class="stat-n n-green">0</div><div class="stat-l">failed pickups goal</div></div>
+      <div class="stat-card"><div class="stat-n n-yellow">24/7</div><div class="stat-l">incl. weekends</div></div>
     </div>
   </div>
 
   <div class="flow-wrap">
-    <div class="slabel">The transformation</div>
+    <div class="section-label">The Transformation</div>
     <div class="compare">
       <div class="fbox bad">
-        <div class="ftag red">Today — manual, every weekend</div>
+        <div class="ftag red">Today &mdash; manual, every weekend</div>
         <div class="ftitle">6 steps, all human, all breakable</div>
         <div class="fstep"><div class="fdot bad">1</div><div>Customer books via website or Viator</div></div>
-        <div class="fstep"><div class="fdot bad">2</div><div>
-          Staff checks HubSpot — is pickup available in this city?
-          <div class="pain">↳ manual lookup, no automation</div>
-        </div></div>
-        <div class="fstep"><div class="fdot bad">3</div><div>
-          Manually verify with store on the day they're going
-          <div class="pain">↳ "oh we're randomly closed today"</div>
-          <div class="pain">↳ "we can't find the boxes"</div>
-          <div class="pain">↳ mom & pop stores, totally fickle</div>
-        </div></div>
-        <div class="fstep"><div class="fdot bad">4</div><div>
-          Tell store the customer's name (day-of only)
-          <div class="pain">↳ this is when surprises happen</div>
-        </div></div>
+        <div class="fstep"><div class="fdot bad">2</div><div>Staff checks HubSpot &mdash; is pickup available in this city?<div class="pain">&darr; manual lookup, no automation</div></div></div>
+        <div class="fstep"><div class="fdot bad">3</div><div>Manually verify with store on the day they're going<div class="pain">&darr; "oh we're randomly closed today"</div><div class="pain">&darr; "we can't find the boxes"</div><div class="pain">&darr; mom &amp; pop stores, totally fickle</div></div></div>
+        <div class="fstep"><div class="fdot bad">4</div><div>Tell store the customer's name (day-of only)<div class="pain">&darr; this is when surprises happen</div></div></div>
         <div class="fstep"><div class="fdot bad">5</div><div>Tell customer where to go and what hours</div></div>
-        <div class="fstep"><div class="fdot bad">6</div><div>
-          Update HubSpot: pickup date, name, reduce inventory
-          <div class="pain">↳ often forgotten on busy weekends</div>
-        </div></div>
+        <div class="fstep"><div class="fdot bad">6</div><div>Update HubSpot: pickup date, name, reduce inventory<div class="pain">&darr; often forgotten on busy weekends</div></div></div>
       </div>
-
       <div class="fbox good">
-        <div class="ftag purple">With AI Agent — verify-first</div>
+        <div class="ftag green">With AI Agent &mdash; verify-first</div>
         <div class="ftitle">Agent runs the loop. Store confirmed before customer notified.</div>
-        <div class="fstep"><div class="fdot good">1</div><div>
-          Order arrives from <span style="color:var(--purple-l)">website</span> or <span style="color:var(--amber)">Viator</span> webhook
-        </div></div>
-        <div class="fstep"><div class="fdot good">2</div><div>
-          Agent queries HubSpot — city has pickup? Stock available?
-          <div class="good-note">↳ instant. No human needed.</div>
-        </div></div>
-        <div class="fstep"><div class="fdot check">✓</div><div>
-          <strong style="color:var(--text)">Day-of: Agent contacts store to verify open + has stock</strong>
-          <div class="good-note">↳ if store can't fulfill → immediately pivots to shipping</div>
-          <div class="good-note">↳ customer never promised anything until confirmed</div>
-        </div></div>
-        <div class="fstep"><div class="fdot good">4</div><div>
-          Store notified with customer name + pickup window
-        </div></div>
-        <div class="fstep"><div class="fdot good">5</div><div>
-          Customer notified <em>only after</em> store confirms
-          <div class="good-note">↳ "your box is ready at X, come between Y–Z"</div>
-        </div></div>
-        <div class="fstep"><div class="fdot good">6</div><div>
-          HubSpot updated automatically: date, name, inventory
-          <div class="good-note">↳ on handoff confirmation from store</div>
-        </div></div>
+        <div class="fstep"><div class="fdot good">1</div><div>Order arrives from <span class="pl">website</span> or <span class="la">Viator</span> webhook</div></div>
+        <div class="fstep"><div class="fdot good">2</div><div>Agent queries HubSpot &mdash; city has pickup? Stock available?<div class="good-note">&darr; instant. No human needed.</div></div></div>
+        <div class="fstep"><div class="fdot check">&check;</div><div><strong style="color:var(--text)">Day-of: Agent contacts store to verify open + has stock</strong><div class="good-note">&darr; if store can't fulfill &rarr; immediately pivots to shipping</div><div class="good-note">&darr; customer never promised anything until confirmed</div></div></div>
+        <div class="fstep"><div class="fdot good">4</div><div>Store notified with customer name + pickup window</div></div>
+        <div class="fstep"><div class="fdot good">5</div><div>Customer notified <em>only after</em> store confirms<div class="good-note">&darr; "your box is ready at X, come between Y&ndash;Z"</div></div></div>
+        <div class="fstep"><div class="fdot good">6</div><div>HubSpot updated automatically: date, name, inventory<div class="good-note">&darr; on handoff confirmation from store</div></div></div>
       </div>
     </div>
 
-    <div class="slabel">Explore the system</div>
+    <div class="section-label">Explore the System</div>
     <div class="cta-grid">
       <div class="cta-card" onclick="goTab('demo')">
-        <div class="cta-icon ci-p">🤖</div>
+        <div class="cta-icon ci-y">&#129302;</div>
         <div class="cta-lbl">Interactive demo</div>
         <div class="cta-title">Watch the agent run</div>
-        <div class="cta-body">Simulate a website or Viator order. Watch the verify-first loop — including what happens when a store can't fulfill.</div>
-        <div class="cta-link lp" style="font-size:11px;font-family:var(--mono);">Open demo →</div>
+        <div class="cta-body">Simulate a website or Viator order. Watch the verify-first loop &mdash; including what happens when a store can't fulfill.</div>
+        <div class="cta-link ly">Open demo &rarr;</div>
       </div>
       <div class="cta-card" onclick="goTab('dashboard')">
-        <div class="cta-icon ci-t">📊</div>
+        <div class="cta-icon ci-g">&#128202;</div>
         <div class="cta-lbl">HQ Dashboard</div>
         <div class="cta-title">Full visibility, both sources</div>
         <div class="cta-body">Live order pipeline from web + Viator, HubSpot sync status, store verification log, and inventory alerts.</div>
-        <div class="cta-link lt" style="font-size:11px;font-family:var(--mono);">Open dashboard →</div>
+        <div class="cta-link lg">Open dashboard &rarr;</div>
       </div>
       <div class="cta-card" onclick="goTab('store')">
-        <div class="cta-icon ci-a">🏪</div>
+        <div class="cta-icon ci-a">&#127978;</div>
         <div class="cta-lbl">Store Portal</div>
         <div class="cta-title">Verify + handoff in one tap</div>
         <div class="cta-body">Morning check-in flow for partner stores. Confirm open + stock available, then confirm handoffs as they happen.</div>
-        <div class="cta-link la" style="font-size:11px;font-family:var(--mono);">Open portal →</div>
+        <div class="cta-link la">Open portal &rarr;</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ DEMO ══ -->
+<!-- DEMO -->
 <div id="sec-demo" class="sec">
   <div class="demo-wrap">
     <div class="dsidebar">
-      <div style="margin-bottom:20px;">
-        <div class="slbl">Order source</div>
+      <div class="form-group">
+        <div class="form-label">Order source</div>
         <div class="source-toggle">
-          <button class="src-btn active" id="src-web" onclick="setSrc('web')">🌐 Website</button>
-          <button class="src-btn" id="src-viat" onclick="setSrc('viator')">🎯 Viator</button>
+          <button class="src-btn active" id="src-web" onclick="setSrc('web')">&#127760; Website</button>
+          <button class="src-btn" id="src-viat" onclick="setSrc('viator')">&#127919; Viator</button>
         </div>
-        <div id="src-note" style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:14px;background:var(--surface2);border:0.5px solid var(--border);border-radius:8px;padding:10px;">Website order — customer entered name + contact at checkout</div>
+        <div id="src-note" style="font-size:12px;color:var(--text-secondary);font-family:var(--mono);background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:12px;">Website order &mdash; customer entered name + contact at checkout</div>
       </div>
-
-      <div class="slbl">Order details</div>
-      <select class="field" id="d-city">
-        <option value="">Select city…</option>
-        <option value="minneapolis">Minneapolis · Downtown East</option>
-        <option value="chicago">Chicago · Fulton Market</option>
-        <option value="nyc">NYC · Central Park</option>
-        <option value="nashville">Nashville · Downtown</option>
-        <option value="austin">Austin · Downtown</option>
-        <option value="seattle">Seattle · Seattle Center (0 stock)</option>
-        <option value="closed">Denver · Capitol Hill (store closed today)</option>
-      </select>
-      <input class="field" id="d-name" type="text" placeholder="Customer name…">
-      <input class="field" id="d-date" type="date">
-      <div style="font-size:10px;color:var(--dim);font-family:var(--mono);margin-bottom:14px;">Intended play date</div>
-
-      <button class="run-btn" id="rbtn" onclick="runAgent()">Run AI Agent →</button>
-
+      <div class="form-group">
+        <div class="form-label">Order details</div>
+        <select class="input" id="d-city">
+          <option value="">Select city&hellip;</option>
+          <option value="minneapolis">Minneapolis &middot; Downtown East</option>
+          <option value="chicago">Chicago &middot; Fulton Market</option>
+          <option value="nyc">NYC &middot; Central Park</option>
+          <option value="nashville">Nashville &middot; Downtown</option>
+          <option value="austin">Austin &middot; Downtown</option>
+          <option value="seattle">Seattle &middot; Seattle Center (0 stock)</option>
+          <option value="closed">Denver &middot; Capitol Hill (store closed today)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <input class="input" id="d-name" type="text" placeholder="Customer name&hellip;">
+      </div>
+      <div class="form-group">
+        <input class="input" id="d-date" type="date">
+        <div class="form-hint">Intended play date</div>
+      </div>
+      <button class="btn btn-primary btn-lg" style="width:100%" id="rbtn" onclick="runAgent()">Run AI Agent &rarr;</button>
       <div class="sidebar-info" id="city-stock-info">
-        <div style="font-size:11px;color:var(--dim);font-family:var(--mono);">Select a city to preview inventory</div>
+        <div style="font-size:12px;color:var(--dim);font-family:var(--mono);">Select a city to preview inventory</div>
       </div>
     </div>
-
     <div class="dmain">
       <div class="logbox">
         <div class="log-hdr">
@@ -445,193 +525,142 @@ tbody td{padding:12px 14px;font-size:12px;color:var(--muted);vertical-align:midd
           <div style="font-family:var(--mono);font-size:11px;color:var(--dim)" id="run-t">idle</div>
         </div>
         <div class="log-body" id="logbody">
-          <div class="ph"><div class="phico">⬡</div><div>Select a city and customer, then run the agent.<br>Try "Denver (store closed)" or "Seattle (0 stock)" to see fallback paths.</div></div>
+          <div class="ph"><div class="phico">&#11045;</div><div>Select a city and customer, then run the agent.<br>Try "Denver (store closed)" or "Seattle (0 stock)" to see fallback paths.</div></div>
         </div>
       </div>
-
       <div class="rgrid" id="rgrid">
-        <div class="rcard store"><div class="ricon ri-p">🏪</div><div class="rlbl">Store assigned</div><div class="rtitle" id="r-store">—</div><div class="rbody" id="r-store-b">—</div></div>
-        <div class="rcard customer"><div class="ricon ri-t">📱</div><div class="rlbl">Customer notified</div><div class="rtitle" id="r-cust">—</div><div class="rbody" id="r-cust-b">—</div></div>
-        <div class="rcard hq"><div class="ricon ri-a">⚡</div><div class="rlbl">HubSpot + run</div><div class="rtitle" id="r-hs">—</div><div class="rbody" id="r-hs-b">—</div></div>
+        <div class="rcard store"><div class="ricon ri-y">&#127978;</div><div class="rlbl">Store assigned</div><div class="rtitle" id="r-store">&mdash;</div><div class="rbody" id="r-store-b">&mdash;</div></div>
+        <div class="rcard customer"><div class="ricon ri-g">&#128241;</div><div class="rlbl">Customer notified</div><div class="rtitle" id="r-cust">&mdash;</div><div class="rbody" id="r-cust-b">&mdash;</div></div>
+        <div class="rcard hq"><div class="ricon ri-a">&#9889;</div><div class="rlbl">HubSpot + run</div><div class="rtitle" id="r-hs">&mdash;</div><div class="rbody" id="r-hs-b">&mdash;</div></div>
       </div>
-
       <div class="npreview" id="npreview">
-        <div style="font-size:13px;font-weight:700;margin-bottom:11px;">Notifications sent</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:var(--s4);">Notifications sent</div>
         <div class="ntabs">
           <button class="ntab active" onclick="swNotif('c-sms')">Customer SMS</button>
           <button class="ntab" onclick="swNotif('c-email')">Customer Email</button>
           <button class="ntab" onclick="swNotif('s-sms')">Store SMS</button>
           <button class="ntab" onclick="swNotif('hs-log')">HubSpot Log</button>
         </div>
-        <div class="ncontent active" id="nc-c-sms"><div class="sms-bubble" id="sms-c">…</div><div class="sms-meta">Delivered · just now</div></div>
+        <div class="ncontent active" id="nc-c-sms"><div class="sms-bubble" id="sms-c">&hellip;</div><div class="sms-meta">Delivered &middot; just now</div></div>
         <div class="ncontent" id="nc-c-email">
           <div class="email-mock">
             <div class="ef"><span class="ek">From</span><span class="ev">adventures@escapely.com</span></div>
-            <div class="ef"><span class="ek">To</span><span class="ev" id="em-to">—</span></div>
-            <div class="ef"><span class="ek">Subject</span><span class="ev" id="em-sub">—</span></div>
-            <div class="ebody" id="em-body">—</div>
+            <div class="ef"><span class="ek">To</span><span class="ev" id="em-to">&mdash;</span></div>
+            <div class="ef"><span class="ek">Subject</span><span class="ev" id="em-sub">&mdash;</span></div>
+            <div class="ebody" id="em-body">&mdash;</div>
           </div>
         </div>
-        <div class="ncontent" id="nc-s-sms"><div class="sms-bubble store-msg" id="sms-s">…</div><div class="sms-meta left">Sent to store contact · just now</div></div>
+        <div class="ncontent" id="nc-s-sms"><div class="sms-bubble store-msg" id="sms-s">&hellip;</div><div class="sms-meta left">Sent to store contact &middot; just now</div></div>
         <div class="ncontent" id="nc-hs-log">
-          <div style="font-family:var(--mono);font-size:12px;color:var(--muted);background:var(--surface);border:0.5px solid var(--border);border-radius:9px;padding:14px;line-height:2;" id="hs-log-content">—</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--text-secondary);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:16px;line-height:2;" id="hs-log-content">&mdash;</div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ DASHBOARD ══ -->
+<!-- DASHBOARD -->
 <div id="sec-dashboard" class="sec">
   <div class="dash-wrap">
-    <div class="dh">
-      <div><div class="dt">HQ Operations</div><div class="ds">Website + Viator · HubSpot sync · Live</div></div>
-      <div class="live-chip"><div class="pdot" style="background:var(--teal);animation:pulse 1.5s ease-in-out infinite;"></div>Live · HubSpot synced</div>
-    </div>
-
-    <div class="metrics">
-      <div class="mtile"><div class="mtop"><div class="mico">📦</div><div class="mdelta up">18 today</div></div><div class="mval">18</div><div class="mlbl">Active orders</div></div>
-      <div class="mtile"><div class="mtop"><div class="mico">🌐</div><div class="mdelta up">+11</div></div><div class="mval n-purple">11</div><div class="mlbl">Website orders</div></div>
-      <div class="mtile"><div class="mtop"><div class="mico">🎯</div><div class="mdelta up">+7</div></div><div class="mval n-amber">7</div><div class="mlbl">Viator bookings</div></div>
-      <div class="mtile"><div class="mtop"><div class="mico">✓</div><div class="mdelta up">94%</div></div><div class="mval n-teal">17</div><div class="mlbl">Auto-coordinated</div></div>
-      <div class="mtile"><div class="mtop"><div class="mico">⚠️</div><div class="mdelta dn">2 new</div></div><div class="mval" style="color:var(--red)">2</div><div class="mlbl">Needs attention</div></div>
-    </div>
-
-    <div class="alerts">
-      <div class="abar danger">
-        <div class="aico">⚠</div>
-        <div class="amsg"><strong>Denver order #9103 (Viator)</strong> — store reported closed today. Auto-pivoted to shipping. Customer notified. HubSpot updated.</div>
-        <button class="aact">View agent run →</button>
+    <div class="dash-header">
+      <div>
+        <div class="dash-title">HQ Operations</div>
+        <div class="dash-sub">Website + Viator &middot; HubSpot sync &middot; Live</div>
       </div>
-      <div class="abar warn">
-        <div class="aico">◆</div>
-        <div class="amsg"><strong>Austin, Seattle, Portland</strong> — stock below threshold. Viator has 3 upcoming bookings in Austin this weekend.</div>
-        <button class="aact">Generate restock →</button>
+      <div class="nav-status"><div class="dot"></div>Live &middot; HubSpot synced</div>
+    </div>
+    <div class="metrics-grid">
+      <div class="metric metric-yellow"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--s3);"><span style="font-size:18px;">&#128230;</span><span class="metric-delta metric-up">18 today</span></div><div class="metric-value">18</div><div class="metric-label">Active orders</div></div>
+      <div class="metric metric-yellow"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--s3);"><span style="font-size:18px;">&#127760;</span><span class="metric-delta metric-up">+11</span></div><div class="metric-value" style="color:var(--yellow)">11</div><div class="metric-label">Website orders</div></div>
+      <div class="metric metric-amber"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--s3);"><span style="font-size:18px;">&#127919;</span><span class="metric-delta metric-up">+7</span></div><div class="metric-value" style="color:var(--amber)">7</div><div class="metric-label">Viator bookings</div></div>
+      <div class="metric metric-green"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--s3);"><span style="font-size:18px;">&#10003;</span><span class="metric-delta metric-up">94%</span></div><div class="metric-value" style="color:var(--green)">17</div><div class="metric-label">Auto-coordinated</div></div>
+      <div class="metric metric-pink"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--s3);"><span style="font-size:18px;">&#9888;&#65039;</span><span class="metric-delta metric-down">2 new</span></div><div class="metric-value" style="color:var(--pink)">2</div><div class="metric-label">Needs attention</div></div>
+    </div>
+    <div class="alerts-wrap">
+      <div class="alert alert-danger">
+        <div class="alert-icon">&#9888;</div>
+        <div class="alert-msg"><strong>Denver order #9103 (Viator)</strong> &mdash; store reported closed today. Auto-pivoted to shipping. Customer notified. HubSpot updated.</div>
+        <button class="btn btn-sm btn-outline-yellow">View agent run &rarr;</button>
       </div>
-      <div class="abar info">
-        <div class="aico">↻</div>
-        <div class="amsg"><strong>HubSpot sync</strong> — 18 contact records updated today. 4 inventory quantities decremented on handoff confirmation.</div>
-        <button class="aact teal">Open HubSpot →</button>
+      <div class="alert alert-warning">
+        <div class="alert-icon">&#9670;</div>
+        <div class="alert-msg"><strong>Austin, Seattle, Portland</strong> &mdash; stock below threshold. Viator has 3 upcoming bookings in Austin this weekend.</div>
+        <button class="btn btn-sm btn-outline-yellow">Generate restock &rarr;</button>
+      </div>
+      <div class="alert alert-info">
+        <div class="alert-icon">&#8635;</div>
+        <div class="alert-msg"><strong>HubSpot sync</strong> &mdash; 18 contact records updated today. 4 inventory quantities decremented on handoff confirmation.</div>
+        <button class="btn btn-sm btn-outline-green">Open HubSpot &rarr;</button>
       </div>
     </div>
-
-    <div class="tsec">
-      <div class="thbar">
-        <div class="ttitle">Order pipeline — today</div>
+    <div class="table-card">
+      <div class="table-header">
+        <div class="table-title">Order pipeline &mdash; today</div>
         <div class="filters">
-          <button class="fb on">All</button>
-          <button class="fb">Website</button>
-          <button class="fb">Viator</button>
-          <button class="fb">Needs attention</button>
+          <button class="filter-btn on">All</button>
+          <button class="filter-btn">Website</button>
+          <button class="filter-btn">Viator</button>
+          <button class="filter-btn">Needs attention</button>
         </div>
       </div>
       <table>
-        <thead><tr>
-          <th>City</th><th>Customer</th><th>Source</th><th>Play date</th>
-          <th>Store verified</th><th>Status</th><th>Window</th><th></th>
-        </tr></thead>
+        <thead><tr><th>City</th><th>Customer</th><th>Source</th><th>Play date</th><th>Store verified</th><th>Status</th><th>Window</th><th></th></tr></thead>
         <tbody>
-          <tr>
-            <td class="tdc">Minneapolis</td><td class="tdn">Jordan K.</td>
-            <td><span class="source-tag s-web">Web</span></td><td>Mar 28</td>
-            <td style="color:var(--teal);font-family:var(--mono);font-size:11px;">✓ Confirmed</td>
-            <td><span class="pill p-conf">Customer notified</span></td>
-            <td style="font-family:var(--mono);font-size:11px;">2–4 PM</td>
-            <td><span class="tda">View run</span></td>
-          </tr>
-          <tr>
-            <td class="tdc">Chicago · FM</td><td class="tdn">Sarah M.</td>
-            <td><span class="source-tag s-viat">Viator</span></td><td>Mar 27</td>
-            <td style="color:var(--amber);font-family:var(--mono);font-size:11px;">⏳ Pending</td>
-            <td><span class="pill p-verif">Verifying store</span></td>
-            <td style="font-family:var(--mono);font-size:11px;color:var(--dim);">—</td>
-            <td><span class="tda">View run</span></td>
-          </tr>
-          <tr>
-            <td class="tdc">NYC · Central Park</td><td class="tdn">Alex R.</td>
-            <td><span class="source-tag s-web">Web</span></td><td>Mar 25</td>
-            <td style="color:var(--teal);font-family:var(--mono);font-size:11px;">✓ Confirmed</td>
-            <td><span class="pill p-done">Picked up ✓</span></td>
-            <td style="font-family:var(--mono);font-size:11px;">4–6 PM</td>
-            <td><span class="tda">View run</span></td>
-          </tr>
-          <tr>
-            <td class="tdc">Denver</td><td class="tdn">Mei & Tom F.</td>
-            <td><span class="source-tag s-viat">Viator</span></td><td>Mar 25</td>
-            <td style="color:var(--red);font-family:var(--mono);font-size:11px;">✗ Store closed</td>
-            <td><span class="pill p-fall">→ Shipping</span></td>
-            <td style="font-family:var(--mono);font-size:11px;color:var(--dim);">—</td>
-            <td><span class="tda">View run</span></td>
-          </tr>
-          <tr>
-            <td class="tdc">Nashville</td><td class="tdn">Priya N.</td>
-            <td><span class="source-tag s-web">Web</span></td><td>Mar 30</td>
-            <td style="color:var(--dim);font-family:var(--mono);font-size:11px;">No partner</td>
-            <td><span class="pill p-ship">Shipping</span></td>
-            <td style="font-family:var(--mono);font-size:11px;color:var(--dim);">—</td>
-            <td><span class="tda">Track</span></td>
-          </tr>
-          <tr>
-            <td class="tdc">Minneapolis</td><td class="tdn">Viator Guest</td>
-            <td><span class="source-tag s-viat">Viator</span></td><td>Mar 25</td>
-            <td style="color:var(--teal);font-family:var(--mono);font-size:11px;">✓ Confirmed</td>
-            <td><span class="pill p-conf">Customer notified</span></td>
-            <td style="font-family:var(--mono);font-size:11px;">11 AM–1 PM</td>
-            <td><span class="tda">View run</span></td>
-          </tr>
+          <tr><td class="tdc">Minneapolis</td><td class="tdn">Jordan K.</td><td><span class="source-tag s-web">Web</span></td><td>Mar 28</td><td style="color:var(--green);font-family:var(--mono);font-size:11px;">&#10003; Confirmed</td><td><span class="badge badge-green">Customer notified</span></td><td style="font-family:var(--mono);font-size:11px;">2&ndash;4 PM</td><td><span class="tda">View run</span></td></tr>
+          <tr><td class="tdc">Chicago &middot; FM</td><td class="tdn">Sarah M.</td><td><span class="source-tag s-viat">Viator</span></td><td>Mar 27</td><td style="color:var(--amber);font-family:var(--mono);font-size:11px;">&#9203; Pending</td><td><span class="badge badge-amber">Verifying store</span></td><td style="font-family:var(--mono);font-size:11px;color:var(--dim);">&mdash;</td><td><span class="tda">View run</span></td></tr>
+          <tr><td class="tdc">NYC &middot; Central Park</td><td class="tdn">Alex R.</td><td><span class="source-tag s-web">Web</span></td><td>Mar 25</td><td style="color:var(--green);font-family:var(--mono);font-size:11px;">&#10003; Confirmed</td><td><span class="badge badge-green">Picked up &#10003;</span></td><td style="font-family:var(--mono);font-size:11px;">4&ndash;6 PM</td><td><span class="tda">View run</span></td></tr>
+          <tr><td class="tdc">Denver</td><td class="tdn">Mei &amp; Tom F.</td><td><span class="source-tag s-viat">Viator</span></td><td>Mar 25</td><td style="color:var(--pink);font-family:var(--mono);font-size:11px;">&#10007; Store closed</td><td><span class="badge badge-pink">&rarr; Shipping</span></td><td style="font-family:var(--mono);font-size:11px;color:var(--dim);">&mdash;</td><td><span class="tda">View run</span></td></tr>
+          <tr><td class="tdc">Nashville</td><td class="tdn">Priya N.</td><td><span class="source-tag s-web">Web</span></td><td>Mar 30</td><td style="color:var(--dim);font-family:var(--mono);font-size:11px;">No partner</td><td><span class="badge badge-muted">Shipping</span></td><td style="font-family:var(--mono);font-size:11px;color:var(--dim);">&mdash;</td><td><span class="tda">Track</span></td></tr>
+          <tr><td class="tdc">Minneapolis</td><td class="tdn">Viator Guest</td><td><span class="source-tag s-viat">Viator</span></td><td>Mar 25</td><td style="color:var(--green);font-family:var(--mono);font-size:11px;">&#10003; Confirmed</td><td><span class="badge badge-green">Customer notified</span></td><td style="font-family:var(--mono);font-size:11px;">11 AM&ndash;1 PM</td><td><span class="tda">View run</span></td></tr>
         </tbody>
       </table>
     </div>
-
-    <div class="slabel">Inventory — all cities</div>
+    <div class="form-label" style="margin-bottom:var(--s4);">Inventory &mdash; all cities</div>
     <div class="inv-grid">
       <div class="icard"><div class="icity">Minneapolis</div><div class="istore">Urban Outfitters Mpls</div><div class="sbar-w"><div class="sbar b-ok" style="width:80%"></div></div><div class="icount"><span class="cn">8 units</span><span class="ok">OK</span></div></div>
-      <div class="icard"><div class="icity">NYC · Central Park</div><div class="istore">The Strand Bookstore</div><div class="sbar-w"><div class="sbar b-ok" style="width:60%"></div></div><div class="icount"><span class="cn">6 units</span><span class="ok">OK</span></div></div>
-      <div class="icard"><div class="icity">Chicago · Fulton</div><div class="istore">Foxtrot Market</div><div class="sbar-w"><div class="sbar b-ok" style="width:50%"></div></div><div class="icount"><span class="cn">5 units</span><span class="ok">OK</span></div></div>
-      <div class="icard"><div class="icity">Denver · Capitol Hill</div><div class="istore">Tattered Cover Books</div><div class="sbar-w"><div class="sbar b-low" style="width:20%"></div></div><div class="icount"><span class="cn">2 units</span><span class="low">Low</span></div></div>
-      <div class="icard"><div class="icity">Nashville</div><div class="istore">No partner store</div><div class="sbar-w"><div class="sbar b-empty" style="width:0%"></div></div><div class="icount"><span class="cn">—</span><span class="empty">Ship only</span></div></div>
+      <div class="icard"><div class="icity">NYC &middot; Central Park</div><div class="istore">The Strand Bookstore</div><div class="sbar-w"><div class="sbar b-ok" style="width:60%"></div></div><div class="icount"><span class="cn">6 units</span><span class="ok">OK</span></div></div>
+      <div class="icard"><div class="icity">Chicago &middot; Fulton</div><div class="istore">Foxtrot Market</div><div class="sbar-w"><div class="sbar b-ok" style="width:50%"></div></div><div class="icount"><span class="cn">5 units</span><span class="ok">OK</span></div></div>
+      <div class="icard"><div class="icity">Denver &middot; Capitol Hill</div><div class="istore">Tattered Cover Books</div><div class="sbar-w"><div class="sbar b-low" style="width:20%"></div></div><div class="icount"><span class="cn">2 units</span><span class="low">Low</span></div></div>
+      <div class="icard"><div class="icity">Nashville</div><div class="istore">No partner store</div><div class="sbar-w"><div class="sbar b-empty" style="width:0%"></div></div><div class="icount"><span class="cn">&mdash;</span><span class="empty">Ship only</span></div></div>
       <div class="icard"><div class="icity">Austin</div><div class="istore">Book People Austin</div><div class="sbar-w"><div class="sbar b-low" style="width:10%"></div></div><div class="icount"><span class="cn">1 unit</span><span class="low">Critical</span></div></div>
       <div class="icard"><div class="icity">Seattle</div><div class="istore">Elliott Bay Books</div><div class="sbar-w"><div class="sbar b-empty" style="width:0%"></div></div><div class="icount"><span class="cn">0 units</span><span class="empty">Empty</span></div></div>
-      <div class="icard"><div class="icity">Miami</div><div class="istore">Ball & Chain Market</div><div class="sbar-w"><div class="sbar b-ok" style="width:100%"></div></div><div class="icount"><span class="cn">10 units</span><span class="ok">OK</span></div></div>
+      <div class="icard"><div class="icity">Miami</div><div class="istore">Ball &amp; Chain Market</div><div class="sbar-w"><div class="sbar b-ok" style="width:100%"></div></div><div class="icount"><span class="cn">10 units</span><span class="ok">OK</span></div></div>
     </div>
   </div>
 </div>
 
-<!-- ══ STORE PORTAL ══ -->
+<!-- STORE PORTAL -->
 <div id="sec-store" class="sec">
   <div class="sp-wrap">
-    <!-- MORNING CHECK-IN -->
-    <div style="background:rgba(245,166,35,.07);border:0.5px solid rgba(245,166,35,.22);border-radius:13px;padding:16px 18px;margin-bottom:24px;" id="checkin-banner">
-      <div style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-bottom:8px;">Morning check-in required</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.55;">The AI agent needs to confirm you're open and have stock before notifying customers. <strong style="color:var(--text)">2 pickups scheduled today.</strong></div>
-      <div style="display:flex;gap:10px;">
-        <button onclick="checkIn(true)" style="background:var(--teal);color:#0a0a0f;border:none;border-radius:8px;padding:9px 16px;font-size:12px;font-weight:800;font-family:var(--sans);cursor:pointer;">✓ We're open &amp; have stock</button>
-        <button onclick="checkIn(false)" style="background:rgba(255,77,109,.12);color:var(--red);border:0.5px solid rgba(255,77,109,.25);border-radius:8px;padding:9px 16px;font-size:12px;font-weight:700;font-family:var(--sans);cursor:pointer;">Can't fulfill today</button>
+    <div class="checkin-banner" id="checkin-banner">
+      <div class="checkin-label">Morning check-in required</div>
+      <div class="checkin-text">The AI agent needs to confirm you're open and have stock before notifying customers. <strong>2 pickups scheduled today.</strong></div>
+      <div class="checkin-actions">
+        <button class="btn btn-success btn-md" onclick="checkIn(true)">&#10003; We're open &amp; have stock</button>
+        <button class="btn btn-danger btn-md" onclick="checkIn(false)">Can't fulfill today</button>
       </div>
     </div>
-
     <div class="sp-hdr">
       <div>
         <div class="sp-name">Urban Outfitters Minneapolis</div>
-        <div class="sp-meta">600 Hennepin Ave · Minneapolis, MN · March 25</div>
+        <div class="sp-meta">600 Hennepin Ave &middot; Minneapolis, MN &middot; March 25</div>
       </div>
-      <div class="stock-badge" style="background:rgba(0,212,160,.1);border:0.5px solid rgba(0,212,160,.22);">
-        <span style="color:var(--teal)" id="sp-stock">8</span>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--teal);letter-spacing:.06em;">UNITS</div>
+      <div class="stock-badge">
+        <span id="sp-stock">8</span>
+        <div class="stock-badge-label">Units</div>
       </div>
     </div>
-
-    <div class="slbl" style="margin-bottom:14px;">Today's pickups</div>
+    <div class="form-label" style="margin-bottom:var(--s4);">Today's pickups</div>
     <div class="plist" id="plist">
       <div class="pcard">
         <div class="ptime"><div class="pt">2:00</div><div class="pam">PM</div></div>
         <div class="pdiv"></div>
         <div class="pinfo">
           <div class="pcust">Jordan K.</div>
-          <div class="pgame">Minneapolis · Downtown East</div>
+          <div class="pgame">Minneapolis &middot; Downtown East</div>
           <div class="psrc"><span class="source-tag s-web">Website order</span></div>
         </div>
-        <span class="pill p-conf" style="margin-right:10px;">Confirmed</span>
+        <span class="badge badge-green" style="margin-right:var(--s3);">Confirmed</span>
         <button class="hbtn" id="hb-1" onclick="doHandoff(1,'Jordan K.')">Hand off</button>
       </div>
       <div class="pcard">
@@ -639,166 +668,157 @@ tbody td{padding:12px 14px;font-size:12px;color:var(--muted);vertical-align:midd
         <div class="pdiv"></div>
         <div class="pinfo">
           <div class="pcust">Viator Guest</div>
-          <div class="pgame">Minneapolis · Downtown East</div>
+          <div class="pgame">Minneapolis &middot; Downtown East</div>
           <div class="psrc"><span class="source-tag s-viat">Viator booking</span></div>
         </div>
-        <span class="pill p-conf" style="margin-right:10px;">Confirmed</span>
+        <span class="badge badge-green" style="margin-right:var(--s3);">Confirmed</span>
         <button class="hbtn" id="hb-2" onclick="doHandoff(2,'Viator Guest')">Hand off</button>
       </div>
     </div>
-
     <div class="upcoming-sec">
-      <div class="slbl" style="margin-bottom:11px;">Upcoming this week</div>
-      <div class="fstep"><div class="fdot good">→</div><div>Sam H. — <span style="font-family:var(--mono);font-size:11px">Mar 26 · 11:00 AM</span> <span class="pill p-conf" style="margin-left:7px;">Confirmed</span></div></div>
-      <div class="fstep"><div class="fdot bad">?</div><div>Nadia F. — <span style="font-family:var(--mono);font-size:11px">Mar 27 · 3:00 PM</span> <span class="pill p-pend" style="margin-left:7px;">Pending check-in</span></div></div>
-      <div class="fstep" style="border-bottom:none"><div class="fdot good">→</div><div>David & Lisa K. — <span style="font-family:var(--mono);font-size:11px">Mar 28 · 1:00 PM</span> <span class="pill p-conf" style="margin-left:7px;">Confirmed</span></div></div>
+      <div class="form-label" style="margin-bottom:var(--s3);">Upcoming this week</div>
+      <div class="fstep"><div class="fdot good">&rarr;</div><div>Sam H. &mdash; <span style="font-family:var(--mono);font-size:11px">Mar 26 &middot; 11:00 AM</span> <span class="badge badge-green" style="margin-left:8px;">Confirmed</span></div></div>
+      <div class="fstep"><div class="fdot bad">?</div><div>Nadia F. &mdash; <span style="font-family:var(--mono);font-size:11px">Mar 27 &middot; 3:00 PM</span> <span class="badge badge-muted" style="margin-left:8px;">Pending check-in</span></div></div>
+      <div class="fstep" style="border-bottom:none"><div class="fdot good">&rarr;</div><div>David &amp; Lisa K. &mdash; <span style="font-family:var(--mono);font-size:11px">Mar 28 &middot; 1:00 PM</span> <span class="badge badge-green" style="margin-left:8px;">Confirmed</span></div></div>
     </div>
-    <div class="sp-footer">Handoff → stock decremented · HubSpot updated · customer confirmation SMS sent</div>
+    <div class="sp-footer">Handoff &rarr; stock decremented &middot; HubSpot updated &middot; customer confirmation SMS sent</div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ── TABS ──
-function goTab(t) {
-  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
-  document.querySelectorAll('.npill').forEach(b=>b.classList.remove('active'));
+/* TABS */
+function goTab(t){
+  document.querySelectorAll('.sec').forEach(function(s){s.classList.remove('on')});
+  document.querySelectorAll('.npill').forEach(function(b){b.classList.remove('active')});
   document.getElementById('sec-'+t).classList.add('on');
-  const tabs=['overview','demo','dashboard','store'];
+  var tabs=['overview','demo','dashboard','store'];
   document.querySelectorAll('.npill')[tabs.indexOf(t)].classList.add('active');
+  document.querySelector('.nav-pills').classList.remove('open');
+  window.scrollTo(0,0);
 }
 
-// ── SOURCE TOGGLE ──
-let currentSrc = 'web';
-function setSrc(s) {
-  currentSrc = s;
-  document.getElementById('src-web').classList.toggle('active', s==='web');
-  document.getElementById('src-viat').classList.toggle('active', s==='viator');
-  document.getElementById('src-note').textContent = s==='web'
-    ? 'Website order — customer name + contact captured at checkout'
-    : 'Viator booking — name and email provided by Viator API webhook';
+/* SOURCE */
+var currentSrc='web';
+function setSrc(s){
+  currentSrc=s;
+  document.getElementById('src-web').classList.toggle('active',s==='web');
+  document.getElementById('src-viat').classList.toggle('active',s==='viator');
+  document.getElementById('src-note').textContent=s==='web'
+    ?'Website order \u2014 customer name + contact captured at checkout'
+    :'Viator booking \u2014 name and email provided by Viator API webhook';
 }
 
-// ── CITY DATA ──
-const cities = {
-  minneapolis:{name:'Minneapolis · Downtown East',store:'Urban Outfitters Minneapolis',addr:'600 Hennepin Ave',stock:8,hours:'10am–8pm',open:true,windows:['2:00–4:00 PM','4:00–6:00 PM']},
-  chicago:{name:'Chicago · Fulton Market',store:'Foxtrot Market',addr:'951 W Fulton Market',stock:5,hours:'8am–10pm',open:true,windows:['12:00–2:00 PM','3:00–5:00 PM']},
-  nyc:{name:'NYC · Central Park',store:'The Strand Bookstore',addr:'828 Broadway',stock:6,hours:'9am–8pm',open:true,windows:['1:00–3:00 PM','4:00–6:00 PM']},
-  nashville:{name:'Nashville · Downtown',store:null,stock:0,open:false,windows:[]},
-  austin:{name:'Austin · Downtown',store:'Book People Austin',addr:'603 N Lamar Blvd',stock:1,hours:'9am–9pm',open:true,windows:['11:00 AM–1:00 PM']},
-  seattle:{name:'Seattle · Seattle Center',store:'Elliott Bay Book Co.',addr:'1521 10th Ave',stock:0,hours:'10am–10pm',open:true,windows:[]},
-  closed:{name:'Denver · Capitol Hill',store:'Tattered Cover Books',addr:'2526 E Colfax Ave',stock:3,hours:'10am–6pm',open:false,windows:['12:00–2:00 PM']}
+/* CITY DATA */
+var cities={
+  minneapolis:{name:'Minneapolis \xb7 Downtown East',store:'Urban Outfitters Minneapolis',addr:'600 Hennepin Ave',stock:8,hours:'10am\u20138pm',open:true,windows:['2:00\u20134:00 PM','4:00\u20136:00 PM']},
+  chicago:{name:'Chicago \xb7 Fulton Market',store:'Foxtrot Market',addr:'951 W Fulton Market',stock:5,hours:'8am\u201310pm',open:true,windows:['12:00\u20132:00 PM','3:00\u20135:00 PM']},
+  nyc:{name:'NYC \xb7 Central Park',store:'The Strand Bookstore',addr:'828 Broadway',stock:6,hours:'9am\u20138pm',open:true,windows:['1:00\u20133:00 PM','4:00\u20136:00 PM']},
+  nashville:{name:'Nashville \xb7 Downtown',store:null,stock:0,open:false,windows:[]},
+  austin:{name:'Austin \xb7 Downtown',store:'Book People Austin',addr:'603 N Lamar Blvd',stock:1,hours:'9am\u20139pm',open:true,windows:['11:00 AM\u20131:00 PM']},
+  seattle:{name:'Seattle \xb7 Seattle Center',store:'Elliott Bay Book Co.',addr:'1521 10th Ave',stock:0,hours:'10am\u201310pm',open:true,windows:[]},
+  closed:{name:'Denver \xb7 Capitol Hill',store:'Tattered Cover Books',addr:'2526 E Colfax Ave',stock:3,hours:'10am\u20136pm',open:false,windows:['12:00\u20132:00 PM']}
 };
 
-document.getElementById('d-city').addEventListener('change', function(){
-  const c = cities[this.value];
-  const el = document.getElementById('city-stock-info');
-  if(!c){el.innerHTML='<div style="font-size:11px;color:var(--dim);font-family:var(--mono);">Select a city to preview inventory</div>';return;}
-  if(!c.store){el.innerHTML=`<div style="background:rgba(255,77,109,.07);border:0.5px solid rgba(255,77,109,.18);border-radius:8px;padding:12px;font-size:11px;font-family:var(--mono);color:var(--red);">No partner store in ${c.name.split('·')[0].trim()}.<br>Agent will route to shipping.</div>`;return;}
-  const sw = c.stock===0?'b-empty':c.stock<=2?'b-low':'b-ok';
-  const sc = c.open ? (c.stock===0?'<span class="empty">0 stock</span>':c.stock<=2?`<span class="low">${c.stock} units — low</span>`:`<span class="ok">${c.stock} units — OK</span>`) : '<span class="empty">Store closed today</span>';
-  el.innerHTML=`<div style="font-size:12px;font-weight:700;margin-bottom:3px;">${c.store}</div>
-    <div style="font-size:10px;color:var(--dim);font-family:var(--mono);margin-bottom:10px;">${c.addr}</div>
-    <div class="sbar-w"><div class="sbar ${sw}" style="width:${Math.min(100,c.stock*10)}%"></div></div>
-    <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;margin-top:4px;">${sc}<span style="color:var(--dim)">${c.hours||''}</span></div>
-    ${!c.open?'<div style="margin-top:8px;font-size:10px;font-family:var(--mono);color:var(--red);background:rgba(255,77,109,.07);border-radius:6px;padding:6px 8px;">⚠ Store flagged as closed today — agent will pivot to shipping</div>':''}`;
+document.getElementById('d-city').addEventListener('change',function(){
+  var c=cities[this.value];
+  var el=document.getElementById('city-stock-info');
+  if(!c){el.innerHTML='<div style="font-size:12px;color:var(--dim);font-family:var(--mono);">Select a city to preview inventory</div>';return;}
+  if(!c.store){el.innerHTML='<div style="background:var(--pink-dim);border:1px solid var(--pink-border);border-radius:var(--r-md);padding:14px;font-size:12px;font-family:var(--mono);color:var(--pink);line-height:1.5;">No partner store in '+c.name.split('\xb7')[0].trim()+'.<br>Agent will route to shipping.</div>';return;}
+  var sw=c.stock===0?'b-empty':c.stock<=2?'b-low':'b-ok';
+  var sc=c.open?(c.stock===0?'<span class="empty">0 stock</span>':c.stock<=2?'<span class="low">'+c.stock+' units \u2014 low</span>':'<span class="ok">'+c.stock+' units \u2014 OK</span>'):'<span class="empty">Store closed today</span>';
+  el.innerHTML='<div style="font-size:13px;font-weight:700;margin-bottom:4px;">'+c.store+'</div><div style="font-size:11px;color:var(--dim);font-family:var(--mono);margin-bottom:12px;">'+c.addr+'</div><div class="sbar-w"><div class="sbar '+sw+'" style="width:'+Math.min(100,c.stock*10)+'%"></div></div><div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;margin-top:6px;">'+sc+'<span style="color:var(--dim)">'+(c.hours||'')+'</span></div>'+(!c.open?'<div style="margin-top:10px;font-size:11px;font-family:var(--mono);color:var(--pink);background:var(--pink-dim);border-radius:var(--r-sm);padding:8px 10px;line-height:1.4;">\u26a0 Store flagged as closed today \u2014 agent will pivot to shipping</div>':'');
 });
 
-const today = new Date().toISOString().split('T')[0];
-document.getElementById('d-date').value = today;
+var today=new Date().toISOString().split('T')[0];
+document.getElementById('d-date').value=today;
 
-// ── AGENT ──
-let busy=false;
-function ts(){const n=new Date();return `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}.${String(n.getMilliseconds()).slice(0,2)}`;}
+/* AGENT */
+var busy=false;
+function ts(){var n=new Date();return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0')+'.'+String(n.getMilliseconds()).slice(0,2);}
 function addLog(tag,cls,msg,delay){
-  return new Promise(r=>setTimeout(()=>{
-    const b=document.getElementById('logbody');
-    const l=document.createElement('div');l.className='ll';l.style.animationDelay='0s';
-    l.innerHTML=`<span class="lts">${ts()}</span><span class="ltag ${cls}">${tag}</span><span class="lmsg">${msg}</span>`;
+  return new Promise(function(r){setTimeout(function(){
+    var b=document.getElementById('logbody');
+    var l=document.createElement('div');l.className='ll';l.style.animationDelay='0s';
+    l.innerHTML='<span class="lts">'+ts()+'</span><span class="ltag '+cls+'">'+tag+'</span><span class="lmsg">'+msg+'</span>';
     b.appendChild(l);b.scrollTop=b.scrollHeight;r();
-  },delay));
+  },delay)});
 }
 
 async function runAgent(){
   if(busy)return;
-  const ck=document.getElementById('d-city').value;
-  const name=document.getElementById('d-name').value.trim();
-  if(!ck||!name){showToast('⚠ Select a city and enter a name','warn');return;}
+  var ck=document.getElementById('d-city').value;
+  var name=document.getElementById('d-name').value.trim();
+  if(!ck||!name){showToast('\u26a0 Select a city and enter a name','warn');return;}
   busy=true;
   document.getElementById('rbtn').disabled=true;
   document.getElementById('rgrid').classList.remove('on');
   document.getElementById('npreview').classList.remove('on');
   document.getElementById('logbody').innerHTML='';
   document.getElementById('pdot').classList.add('spin');
-  const c=cities[ck];
-  const t0=Date.now();
-  const src=currentSrc==='viator'?'Viator':'Website';
-  const isFallback=!c.store||(c.stock===0)||(!c.open);
-  const reason=!c.store?'no partner store in city':c.stock===0?'store has 0 units in stock':!c.open?'store reported closed today':'';
+  var c=cities[ck];
+  var t0=Date.now();
+  var src=currentSrc==='viator'?'Viator':'Website';
 
-  await addLog('INFO','t-info',`<strong>${src}</strong> order received — <span class="pl">${name}</span> · ${c.name}`,0);
-  await addLog('HUBSPOT','t-hs',`Querying HubSpot — checking city availability and inventory record for <strong>${ck}</strong>`,420);
-  await addLog('HUBSPOT','t-hs',isFallback && !c.store
-    ? `HubSpot: no pickup arrangement in ${c.name.split('·')[0].trim()} — <span class="rl">routing to shipping</span>`
-    : `HubSpot: pickup available · inventory shows <strong>${c.stock} units</strong> · store: ${c.store}`,900);
+  await addLog('INFO','t-info','<strong>'+src+'</strong> order received \u2014 <span class="pl">'+name+'</span> \xb7 '+c.name,0);
+  await addLog('HUBSPOT','t-hs','Querying HubSpot \u2014 checking city availability and inventory record for <strong>'+ck+'</strong>',420);
+  await addLog('HUBSPOT','t-hs',!c.store
+    ?'HubSpot: no pickup arrangement in '+c.name.split('\xb7')[0].trim()+' \u2014 <span class="rl">routing to shipping</span>'
+    :'HubSpot: pickup available \xb7 inventory shows <strong>'+c.stock+' units</strong> \xb7 store: '+c.store,900);
 
   if(!c.store){
-    await addLog('AGENT','t-ai','No partner store — shipping is the only option for this city',1300);
-    await addLog('FALLBACK','t-fallback',`<strong>Routing to shipping</strong> — no pickup arrangement in ${c.name.split('·')[0].trim()}`,1700);
-    await addLog('SEND','t-send',`Customer notified: <span class="hl">shipping confirmation sent to ${name}</span>`,2100);
-    await addLog('HUBSPOT','t-hs',`HubSpot updated — contact record: fulfillment method = shipping, date logged`,2500);
-    await addLog('DONE','t-done',`Run complete · <span class="hl">fallback: no partner</span> · ${((Date.now()-t0)/1000).toFixed(2)}s`,2900);
-    finishRun(t0,'No partner',`Shipping from HQ. No pickup available in ${c.name.split('·')[0].trim()}.`,'Shipping direct','Customer notified — box ships from HQ','HubSpot updated',`fulfillment: shipping · no partner`, name, c, false, 'no partner');
+    await addLog('AGENT','t-ai','No partner store \u2014 shipping is the only option for this city',1300);
+    await addLog('FALLBACK','t-fallback','<strong>Routing to shipping</strong> \u2014 no pickup arrangement in '+c.name.split('\xb7')[0].trim(),1700);
+    await addLog('SEND','t-send','Customer notified: <span class="hl">shipping confirmation sent to '+name+'</span>',2100);
+    await addLog('HUBSPOT','t-hs','HubSpot updated \u2014 contact record: fulfillment method = shipping, date logged',2500);
+    await addLog('DONE','t-done','Run complete \xb7 <span style="color:#000">fallback: no partner</span> \xb7 '+((Date.now()-t0)/1000).toFixed(2)+'s',2900);
+    finishRun(t0,'No partner','Shipping from HQ. No pickup available in '+c.name.split('\xb7')[0].trim()+'.','Shipping direct','Customer notified \u2014 box ships from HQ','HubSpot updated','fulfillment: shipping \xb7 no partner',name,c,false,'no partner');
     return;
   }
 
   if(c.stock===0){
-    await addLog('AGENT','t-ai',`HubSpot shows 0 units at ${c.store} — <span class="al">cannot fulfill pickup</span>`,1300);
-    await addLog('FALLBACK','t-fallback',`<strong>Routing to shipping</strong> — out of stock at partner store`,1700);
-    await addLog('SEND','t-send',`Customer notified: <span class="hl">shipping confirmation — "we're sending it directly to you"</span>`,2100);
-    await addLog('HUBSPOT','t-hs','HubSpot updated — fulfillment: shipping, inventory note logged',2500);
-    await addLog('DONE','t-done',`Run complete · <span class="hl">fallback: out of stock</span> · ${((Date.now()-t0)/1000).toFixed(2)}s`,2900);
-    finishRun(t0,'Out of stock',`${c.store} has 0 units. Shipping from HQ.`,'Shipping direct','Customer notified warmly — no broken promises','HubSpot updated',`fulfillment: shipping · stock: 0`, name, c, false, 'out of stock');
+    await addLog('AGENT','t-ai','HubSpot shows 0 units at '+c.store+' \u2014 <span class="al">cannot fulfill pickup</span>',1300);
+    await addLog('FALLBACK','t-fallback','<strong>Routing to shipping</strong> \u2014 out of stock at partner store',1700);
+    await addLog('SEND','t-send','Customer notified: <span class="hl">shipping confirmation \u2014 "we\'re sending it directly to you"</span>',2100);
+    await addLog('HUBSPOT','t-hs','HubSpot updated \u2014 fulfillment: shipping, inventory note logged',2500);
+    await addLog('DONE','t-done','Run complete \xb7 <span style="color:#000">fallback: out of stock</span> \xb7 '+((Date.now()-t0)/1000).toFixed(2)+'s',2900);
+    finishRun(t0,'Out of stock',c.store+' has 0 units. Shipping from HQ.','Shipping direct','Customer notified warmly \u2014 no broken promises','HubSpot updated','fulfillment: shipping \xb7 stock: 0',name,c,false,'out of stock');
     return;
   }
 
-  // day-of store verify
-  await addLog('VERIFY','t-verify',`Day-of store check — contacting <strong>${c.store}</strong> to verify open + stock available`,1300);
+  await addLog('VERIFY','t-verify','Day-of store check \u2014 contacting <strong>'+c.store+'</strong> to verify open + stock available',1300);
   await addLog('VERIFY','t-verify',c.open
-    ? `Store response: <span class="hl">✓ Open today ${c.hours} · ${c.stock} units confirmed</span>`
-    : `<span class="rl">⚠ Store cannot fulfill today — ${reason}</span>`,2100);
+    ?'Store response: <span class="hl">\u2713 Open today '+c.hours+' \xb7 '+c.stock+' units confirmed</span>'
+    :'<span class="rl">\u26a0 Store cannot fulfill today \u2014 store reported closed today</span>',2100);
 
   if(!c.open){
-    await addLog('AGENT','t-ai','Store unavailable — pivoting to shipping before any customer contact',2700);
-    await addLog('FALLBACK','t-fallback',`<strong>Routing to shipping</strong> — store closed. Customer never promised pickup.`,3100);
-    await addLog('SEND','t-send',`Customer notified: <span class="hl">"We're sending your box directly to you"</span> — no mention of failed pickup`,3500);
-    await addLog('HUBSPOT','t-hs','HubSpot updated — fulfillment: shipping, store issue logged, inventory unchanged',4000);
-    await addLog('DONE','t-done',`Run complete · <span class="hl">fallback: store closed</span> · ${((Date.now()-t0)/1000).toFixed(2)}s`,4400);
-    finishRun(t0,'Store closed today',`${c.store} cannot fulfill. Customer never told about pickup — smooth fallback.`,'Shipping direct','Seamless pivot — customer never knew','HubSpot updated',`store: closed · fulfillment: shipping`, name, c, false, 'store closed');
+    await addLog('AGENT','t-ai','Store unavailable \u2014 pivoting to shipping before any customer contact',2700);
+    await addLog('FALLBACK','t-fallback','<strong>Routing to shipping</strong> \u2014 store closed. Customer never promised pickup.',3100);
+    await addLog('SEND','t-send','Customer notified: <span class="hl">"We\'re sending your box directly to you"</span> \u2014 no mention of failed pickup',3500);
+    await addLog('HUBSPOT','t-hs','HubSpot updated \u2014 fulfillment: shipping, store issue logged, inventory unchanged',4000);
+    await addLog('DONE','t-done','Run complete \xb7 <span style="color:#000">fallback: store closed</span> \xb7 '+((Date.now()-t0)/1000).toFixed(2)+'s',4400);
+    finishRun(t0,'Store closed today',c.store+' cannot fulfill. Customer never told about pickup \u2014 smooth fallback.','Shipping direct','Seamless pivot \u2014 customer never knew','HubSpot updated','store: closed \xb7 fulfillment: shipping',name,c,false,'store closed');
     return;
   }
 
-  // success path
-  const win=c.windows[0]||'2:00–4:00 PM';
-  await addLog('AGENT','t-ai',`Claude selecting pickup window — store hours ${c.hours}, 2hr lead time applied`,2700);
-  await addLog('AGENT','t-ai',`Window selected: <span class="hl">${win}</span> · Reason: first available slot within hours + lead time`,3200);
-  await addLog('SEND','t-send',`Store SMS → <strong>${c.store}</strong>: hold 1 unit for ${name}, pickup ${win}`,3700);
-  await addLog('SEND','t-send',`Customer SMS + email → <strong>${name}</strong>: confirmed at ${c.store}, ${win}`,4100);
-  await addLog('HUBSPOT','t-hs',`HubSpot updated — contact: ${name} · pickup_date: today · store: ${c.store} · inventory: ${c.stock} → ${c.stock-1}`,4600);
-  await addLog('DONE','t-done',`Run complete ✓ · <span class="hl">pickup confirmed</span> · ${((Date.now()-t0)/1000).toFixed(1)}s · $0.04`,5000);
-  finishRun(t0,c.store,`${c.addr} · ${c.stock} units · ${c.hours}`,win,`Confirmed at ${c.store} between ${win}`,'HubSpot synced',`store confirmed · inventory: ${c.stock}→${c.stock-1} · $0.04`, name, c, true, win);
+  var win=c.windows[0]||'2:00\u20134:00 PM';
+  await addLog('AGENT','t-ai','Claude selecting pickup window \u2014 store hours '+c.hours+', 2hr lead time applied',2700);
+  await addLog('AGENT','t-ai','Window selected: <span class="hl">'+win+'</span> \xb7 Reason: first available slot within hours + lead time',3200);
+  await addLog('SEND','t-send','Store SMS \u2192 <strong>'+c.store+'</strong>: hold 1 unit for '+name+', pickup '+win,3700);
+  await addLog('SEND','t-send','Customer SMS + email \u2192 <strong>'+name+'</strong>: confirmed at '+c.store+', '+win,4100);
+  await addLog('HUBSPOT','t-hs','HubSpot updated \u2014 contact: '+name+' \xb7 pickup_date: today \xb7 store: '+c.store+' \xb7 inventory: '+c.stock+' \u2192 '+(c.stock-1),4600);
+  await addLog('DONE','t-done','Run complete \u2713 \xb7 <span style="color:#000">pickup confirmed</span> \xb7 '+((Date.now()-t0)/1000).toFixed(1)+'s \xb7 $0.04',5000);
+  finishRun(t0,c.store,c.addr+' \xb7 '+c.stock+' units \xb7 '+c.hours,win,'Confirmed at '+c.store+' between '+win,'HubSpot synced','store confirmed \xb7 inventory: '+c.stock+'\u2192'+(c.stock-1)+' \xb7 $0.04',name,c,true,win);
 }
 
-function finishRun(t0, storeTitle, storeBody, custTitle, custBody, hsTitle, hsBody, name, c, success, win){
-  document.getElementById('run-t').textContent = `${((Date.now()-t0)/1000).toFixed(1)}s`;
+function finishRun(t0,storeTitle,storeBody,custTitle,custBody,hsTitle,hsBody,name,c,success,win){
+  document.getElementById('run-t').textContent=((Date.now()-t0)/1000).toFixed(1)+'s';
   document.getElementById('pdot').classList.remove('spin');
-
-  // Update result cards
-  const rcard2 = document.querySelector('.rcard.customer');
-  rcard2.className = 'rcard '+(success?'customer':'fallback');
-  rcard2.querySelector('.ricon').className = 'ricon '+(success?'ri-t':'ri-r');
-  rcard2.querySelector('.ricon').textContent = success?'📱':'📦';
+  var rcard2=document.querySelectorAll('.rcard')[1];
+  rcard2.className='rcard '+(success?'customer':'fallback');
+  rcard2.querySelector('.ricon').className='ricon '+(success?'ri-g':'ri-p');
+  rcard2.querySelector('.ricon').textContent=success?'\ud83d\udcf1':'\ud83d\udce6';
   document.getElementById('r-store').textContent=storeTitle;
   document.getElementById('r-store-b').textContent=storeBody;
   document.getElementById('r-cust').textContent=custTitle;
@@ -806,74 +826,70 @@ function finishRun(t0, storeTitle, storeBody, custTitle, custBody, hsTitle, hsBo
   document.getElementById('r-hs').textContent=hsTitle;
   document.getElementById('r-hs-b').textContent=hsBody;
   document.getElementById('rgrid').classList.add('on');
-
-  // Notifications
-  const src = currentSrc==='viator'?'Viator':'Escapely';
+  var srcLabel=currentSrc==='viator'?'Viator':'Escapely';
   if(success){
-    document.getElementById('sms-c').textContent=`Hi ${name}! Your Escapely ${c.name} box is ready at ${c.store}, ${c.addr}. Pick up between ${win} today. See you on your adventure! 🗺`;
+    document.getElementById('sms-c').textContent='Hi '+name+'! Your Escapely '+c.name+' box is ready at '+c.store+', '+c.addr+'. Pick up between '+win+' today. See you on your adventure! \ud83d\uddfa';
     document.getElementById('sms-c').className='sms-bubble';
-    document.getElementById('em-to').textContent=`${name.toLowerCase().replace(/\s+/g,'.')}@example.com`;
-    document.getElementById('em-sub').textContent=`Your Escapely adventure is ready — pickup today!`;
-    document.getElementById('em-body').innerHTML=`Hi ${name}!<br><br>Your <strong>${c.name}</strong> box is confirmed for pickup.<br><br><strong>📍</strong> ${c.store}<br><strong>🗺</strong> ${c.addr}<br><strong>⏰</strong> ${win} today<br><br>— The Escapely Team`;
-    document.getElementById('sms-s').textContent=`Escapely: ${name} will pick up 1x ${c.name} box between ${win} today. Please hold 1 unit. Their name is ${name.split(' ')[0]}. Reply CONFIRM or text us with issues.`;
-    document.getElementById('hs-log-content').innerHTML=`<span style="color:var(--teal)">✓</span> Contact: ${name}<br><span style="color:var(--teal)">✓</span> pickup_date: ${new Date().toLocaleDateString()}<br><span style="color:var(--teal)">✓</span> assigned_store: ${c.store}<br><span style="color:var(--teal)">✓</span> inventory_qty: ${c.stock} → ${c.stock-1}<br><span style="color:var(--teal)">✓</span> fulfillment_method: local_pickup<br><span style="color:var(--teal)">✓</span> source: ${currentSrc}`;
-  } else {
-    document.getElementById('sms-c').textContent=win==='store closed'||win==='out of stock'
-      ? `Hi ${name}! Great news — we're sending your Escapely ${c.name||''} box directly to you. It'll arrive before your play date. No action needed! 📦 — ${src}`
-      : `Hi ${name}! We're shipping your Escapely box directly to you — it'll arrive before your play date. No action needed! — ${src}`;
+    document.getElementById('em-to').textContent=name.toLowerCase().replace(/\s+/g,'.')+'@example.com';
+    document.getElementById('em-sub').textContent='Your Escapely adventure is ready \u2014 pickup today!';
+    document.getElementById('em-body').innerHTML='Hi '+name+'!<br><br>Your <strong>'+c.name+'</strong> box is confirmed for pickup.<br><br><strong>\ud83d\udccd</strong> '+c.store+'<br><strong>\ud83d\uddfa</strong> '+c.addr+'<br><strong>\u23f0</strong> '+win+' today<br><br>\u2014 The Escapely Team';
+    document.getElementById('sms-s').textContent='Escapely: '+name+' will pick up 1x '+c.name+' box between '+win+' today. Please hold 1 unit. Their name is '+name.split(' ')[0]+'. Reply CONFIRM or text us with issues.';
+    document.getElementById('hs-log-content').innerHTML='<span style="color:var(--green)">\u2713</span> Contact: '+name+'<br><span style="color:var(--green)">\u2713</span> pickup_date: '+new Date().toLocaleDateString()+'<br><span style="color:var(--green)">\u2713</span> assigned_store: '+c.store+'<br><span style="color:var(--green)">\u2713</span> inventory_qty: '+c.stock+' \u2192 '+(c.stock-1)+'<br><span style="color:var(--green)">\u2713</span> fulfillment_method: local_pickup<br><span style="color:var(--green)">\u2713</span> source: '+currentSrc;
+  }else{
+    document.getElementById('sms-c').textContent='Hi '+name+'! Great news \u2014 we\'re sending your Escapely '+(c.name||'')+' box directly to you. It\'ll arrive before your play date. No action needed! \ud83d\udce6 \u2014 '+srcLabel;
     document.getElementById('sms-c').className='sms-bubble';
-    document.getElementById('em-to').textContent=`${name.toLowerCase().replace(/\s+/g,'.')}@example.com`;
-    document.getElementById('em-sub').textContent='Your Escapely adventure — your box is on its way!';
-    document.getElementById('em-body').innerHTML=`Hi ${name}!<br><br>We're sending your <strong>${c?c.name:''}</strong> box directly to you — it'll arrive with plenty of time before your play date.<br><br>Get ready for your adventure! 🗺<br><br>— The Escapely Team`;
-    document.getElementById('sms-s').textContent='(No store notification sent — order routed to shipping.)';
-    document.getElementById('hs-log-content').innerHTML=`<span style="color:var(--teal)">✓</span> Contact: ${name}<br><span style="color:var(--teal)">✓</span> fulfillment_method: shipping<br><span style="color:var(--teal)">✓</span> fallback_reason: ${win}<br><span style="color:var(--teal)">✓</span> source: ${currentSrc}<br><span style="color:var(--dim)">— store notification: not sent</span>`;
+    document.getElementById('em-to').textContent=name.toLowerCase().replace(/\s+/g,'.')+'@example.com';
+    document.getElementById('em-sub').textContent='Your Escapely adventure \u2014 your box is on its way!';
+    document.getElementById('em-body').innerHTML='Hi '+name+'!<br><br>We\'re sending your <strong>'+(c?c.name:'')+'</strong> box directly to you \u2014 it\'ll arrive with plenty of time before your play date.<br><br>Get ready for your adventure! \ud83d\uddfa<br><br>\u2014 The Escapely Team';
+    document.getElementById('sms-s').textContent='(No store notification sent \u2014 order routed to shipping.)';
+    document.getElementById('hs-log-content').innerHTML='<span style="color:var(--green)">\u2713</span> Contact: '+name+'<br><span style="color:var(--green)">\u2713</span> fulfillment_method: shipping<br><span style="color:var(--green)">\u2713</span> fallback_reason: '+win+'<br><span style="color:var(--green)">\u2713</span> source: '+currentSrc+'<br><span style="color:var(--dim)">\u2014 store notification: not sent</span>';
   }
-  setTimeout(()=>document.getElementById('npreview').classList.add('on'),300);
+  setTimeout(function(){document.getElementById('npreview').classList.add('on')},300);
   busy=false;
   document.getElementById('rbtn').disabled=false;
 }
 
 function swNotif(id){
-  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.ncontent').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(function(t){t.classList.remove('active')});
+  document.querySelectorAll('.ncontent').forEach(function(c){c.classList.remove('active')});
   event.target.classList.add('active');
   document.getElementById('nc-'+id).classList.add('active');
 }
 
-// ── STORE CHECK-IN ──
+/* STORE CHECK-IN */
 function checkIn(open){
   document.getElementById('checkin-banner').style.display='none';
   if(open){
-    showToast('✓ Check-in confirmed — agent notifying customers now');
-  } else {
-    document.getElementById('plist').innerHTML=`<div style="background:rgba(255,77,109,.07);border:0.5px solid rgba(255,77,109,.2);border-radius:12px;padding:18px;text-align:center;font-size:13px;color:var(--red);line-height:1.6;">Store marked as unable to fulfill today.<br><span style="font-family:var(--mono);font-size:11px;color:var(--muted);">Agent has routed all 2 orders to shipping. Customers notified warmly. No one will show up today.</span></div>`;
-    showToast('⚠ All pickups pivoted to shipping — customers notified automatically','warn');
+    showToast('\u2713 Check-in confirmed \u2014 agent notifying customers now');
+  }else{
+    document.getElementById('plist').innerHTML='<div style="background:var(--pink-dim);border:2px solid var(--pink-border);border-radius:var(--r-xl);padding:var(--s6);text-align:center;font-size:14px;color:var(--pink);line-height:1.7;">Store marked as unable to fulfill today.<br><span style="font-family:var(--mono);font-size:12px;color:var(--text-secondary);">Agent has routed all 2 orders to shipping. Customers notified warmly. No one will show up today.</span></div>';
+    showToast('\u26a0 All pickups pivoted to shipping \u2014 customers notified automatically','warn');
   }
 }
 
-// ── HANDOFF ──
-let spStock=8;
+/* HANDOFF */
+var spStock=8;
 function doHandoff(id,name){
-  const btn=document.getElementById('hb-'+id);
-  btn.disabled=true;btn.textContent='✓ Done';btn.classList.add('done');
+  var btn=document.getElementById('hb-'+id);
+  btn.disabled=true;btn.textContent='\u2713 Done';btn.classList.add('done');
   spStock--;
   document.getElementById('sp-stock').textContent=spStock;
-  showToast(`✓ ${name} handed off · Stock: ${spStock} · HubSpot updated · Customer SMS sent`);
+  showToast('\u2713 '+name+' handed off \xb7 Stock: '+spStock+' \xb7 HubSpot updated \xb7 Customer SMS sent');
 }
 
-// ── TOAST ──
-function showToast(msg,type=''){
-  const t=document.getElementById('toast');
+/* TOAST */
+function showToast(msg,type){
+  var t=document.getElementById('toast');
   t.textContent=msg;
   t.className='toast on'+(type==='warn'?' warn-toast':'');
-  setTimeout(()=>t.className='toast',3800);
+  setTimeout(function(){t.className='toast'},4000);
 }
 
-// ── FILTER BTNS ──
-document.querySelectorAll('.fb').forEach(b=>b.addEventListener('click',function(){
-  document.querySelectorAll('.fb').forEach(x=>x.classList.remove('on'));
+/* FILTER BTNS */
+document.querySelectorAll('.filter-btn').forEach(function(b){b.addEventListener('click',function(){
+  document.querySelectorAll('.filter-btn').forEach(function(x){x.classList.remove('on')});
   this.classList.add('on');
-}));
+})});
 </script>
 </body>
 </html>
